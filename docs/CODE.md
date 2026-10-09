@@ -6,6 +6,10 @@
 index.html                              built page (do not edit by hand)
 Advanced_Excel_Practice_Workbook.xlsx   built workbook
 regional_targets.csv                    built CSV for Topic 4
+manifest.webmanifest                    web app manifest
+sw.js                                   offline service worker
+icons/                                  app icons
+.nojekyll                               tells GitHub Pages to serve files as they are
 src/
   shell.html        markup and CSS
   content.js        TOPICS and FAQ data

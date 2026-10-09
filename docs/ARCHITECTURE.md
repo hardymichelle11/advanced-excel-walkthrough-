@@ -116,6 +116,21 @@ sequenceDiagram
 
 Nothing is sent to a server except the assistant prompt when the Claude capability is in use.
 
+## Installable web app
+
+Served from GitHub Pages, the same `index.html` is a progressive web app:
+
+| Piece | Role |
+|---|---|
+| `manifest.webmanifest` | Name, colours, icons and standalone display mode, so phones offer Add to Home Screen |
+| `icons/` | 192px and 512px icons, a maskable icon for Android and an Apple touch icon, generated from one drawing |
+| `sw.js` | Service worker. Pre-caches the page, manifest, icons, workbook and CSV. Page loads are network-first with a cached fallback; other files are cache-first and refreshed in the background. Google Fonts are cached after first use |
+| Head tags in `build_page.py` | Manifest link, theme colour and Apple web-app tags |
+
+`app.js` sets `STANDALONE` when the page is served over http(s) outside a Claude artifact. Only then does it register the service worker and show the workbook download links and install hint. Inside a Claude artifact those are skipped, because downloads and service workers are not available there.
+
+Updating: old caches are deleted when `VERSION` in `sw.js` changes, so increase it with every release.
+
 ## The practice workbook
 
 `src/build_workbook.py` uses `openpyxl` to write 20 sheets: a Start Here index, a shared Data sheet (an Excel Table named `SalesData`), one sheet per topic, and Jan/Feb/Mar sheets for 3-D references.

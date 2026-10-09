@@ -9,8 +9,22 @@ An interactive study guide for an advanced Excel course, with a matching practic
 | `index.html` | The guide: 15 topics, illustrated worked examples, audio narration, keyword search and index, 45 quiz questions with explained answers, and an Ask & FAQ page. Open it in a browser. |
 | `Advanced_Excel_Practice_Workbook.xlsx` | One sheet per topic, using the same numbers as the guide. |
 | `regional_targets.csv` | Small file for the Topic 4 import exercise. |
+| `manifest.webmanifest`, `sw.js`, `icons/` | Make the page installable and usable offline. |
 | `docs/` | Architecture, design and code documentation. |
 | `src/` | Source for the page (`shell.html`, `content.js`, `app.js`) and the workbook (`build_workbook.py`). |
+
+## Install it as an app
+
+Once GitHub Pages is switched on for this repository, the guide is served at
+`https://hardymichelle11.github.io/advanced-excel-walkthrough-/`.
+
+- **iPhone or iPad (Safari):** open the address, tap Share, then **Add to Home Screen**.
+- **Android (Chrome):** open the address, open the menu, then **Install app** or **Add to Home screen**.
+- **Desktop (Chrome or Edge):** click the install icon in the address bar.
+
+After the first visit it works offline, including the workbook download.
+
+To publish an update, rebuild `index.html`, increase `VERSION` in `sw.js`, and push.
 
 ## Documentation
 

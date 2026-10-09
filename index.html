@@ -1,5 +1,18 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Advanced Excel Walkthrough</title>
+<meta name="description" content="A 15-topic advanced Excel study guide with worked examples, audio narration, search and explained quizzes.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1b6b45">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Excel Guide">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>:root{padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head><body>
 <title>Advanced Excel Walkthrough</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
@@ -88,6 +101,7 @@ main { min-width: 0; padding: 26px 16px 70px }
 .player select { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; max-width: 170px; font-size: .88rem }
 .btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 700 }
 .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 600 }
+a.btn { text-decoration: none; display: inline-block }
 .btn.small { padding: 3px 10px; font-size: .84rem }
 .btn:disabled { opacity: .5; cursor: default }
 .reading { background: var(--accent-soft); box-shadow: 0 0 0 6px var(--accent-soft); border-radius: 2px }
@@ -1221,6 +1235,8 @@ function indexPage() {
 }
 
 /* ---------- home ---------- */
+/* Standalone = served as its own site (for example GitHub Pages), not inside a Claude artifact. */
+const STANDALONE = !window.claude && /^https?:$/.test(location.protocol);
 function homePage() {
   const total = TOPICS.reduce((n, t) => n + t.quiz.length, 0), got = TOPICS.reduce((n, t) => n + scoreOf(t), 0);
   return `<header class="cover"><div class="eyebrow">Course companion &middot; ${TOPICS.length} topics &middot; ${total} check questions</div>
@@ -1228,6 +1244,7 @@ function homePage() {
     <p class="lead">Each topic explains the idea, shows it on a picture of the real worksheet, walks you through the clicks, then checks your understanding with explained answers. The numbers match the practice workbook, so you can follow along in Excel.</p>
     <div class="fbar"><span class="nb">A1</span><span class="fxi">fx</span><span class="f">=COUNTIF(QuizAnswers, "correct")  &rarr;  ${got} of ${total} so far</span></div></header>
   <div class="how"><div><b>Read or listen</b>Press Listen on any topic to have it read aloud while each part is highlighted.</div><div><b>Follow along</b>Open the matching sheet in the practice workbook and do the numbered steps.</div><div><b>Check yourself</b>Answer three questions per topic. Every option is explained.</div><div><b>Search or ask</b>Search keywords from the top bar, or ask a question in Ask &amp; FAQ.</div></div>
+  ${STANDALONE ? `<div class="chips"><a class="btn" href="Advanced_Excel_Practice_Workbook.xlsx" download>Download the practice workbook</a><a class="btn ghost" href="regional_targets.csv" download>Download regional_targets.csv</a></div><p class="note">To keep this guide on your phone: in Safari tap Share, then Add to Home Screen. In Chrome open the menu and choose Install app or Add to Home screen. It then opens like an app and works offline.</p>` : ''}
   <div class="toc">${TOPICS.map(t => `<button type="button" data-go="${t.id}"><span class="n">${String(t.n).padStart(2, '0')} &middot; ${doneCount(t) ? scoreOf(t) + '/' + t.quiz.length + ' correct' : 'not started'}</span><b>${esc(t.title)}</b><small>${esc(t.kw.slice(0, 4).join(', '))}</small></button>`).join('')}</div>`;
 }
 
@@ -1393,6 +1410,9 @@ window.addEventListener('pagehide', () => { if (synth) synth.cancel(); });
 
 const start = location.hash.slice(1);
 show(byId(start) || ['index', 'ask'].includes(start) ? start : 'home');
+if (STANDALONE && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is optional */ }); });
+}
 if (window.claude && typeof window.claude.use === 'function') {
   window.claude.use('sample').then(s => { sample = s || null; botMode(); }).catch(() => {});
 }

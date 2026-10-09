@@ -286,6 +286,8 @@ function indexPage() {
 }
 
 /* ---------- home ---------- */
+/* Standalone = served as its own site (for example GitHub Pages), not inside a Claude artifact. */
+const STANDALONE = !window.claude && /^https?:$/.test(location.protocol);
 function homePage() {
   const total = TOPICS.reduce((n, t) => n + t.quiz.length, 0), got = TOPICS.reduce((n, t) => n + scoreOf(t), 0);
   return `<header class="cover"><div class="eyebrow">Course companion &middot; ${TOPICS.length} topics &middot; ${total} check questions</div>
@@ -293,6 +295,7 @@ function homePage() {
     <p class="lead">Each topic explains the idea, shows it on a picture of the real worksheet, walks you through the clicks, then checks your understanding with explained answers. The numbers match the practice workbook, so you can follow along in Excel.</p>
     <div class="fbar"><span class="nb">A1</span><span class="fxi">fx</span><span class="f">=COUNTIF(QuizAnswers, "correct")  &rarr;  ${got} of ${total} so far</span></div></header>
   <div class="how"><div><b>Read or listen</b>Press Listen on any topic to have it read aloud while each part is highlighted.</div><div><b>Follow along</b>Open the matching sheet in the practice workbook and do the numbered steps.</div><div><b>Check yourself</b>Answer three questions per topic. Every option is explained.</div><div><b>Search or ask</b>Search keywords from the top bar, or ask a question in Ask &amp; FAQ.</div></div>
+  ${STANDALONE ? `<div class="chips"><a class="btn" href="Advanced_Excel_Practice_Workbook.xlsx" download>Download the practice workbook</a><a class="btn ghost" href="regional_targets.csv" download>Download regional_targets.csv</a></div><p class="note">To keep this guide on your phone: in Safari tap Share, then Add to Home Screen. In Chrome open the menu and choose Install app or Add to Home screen. It then opens like an app and works offline.</p>` : ''}
   <div class="toc">${TOPICS.map(t => `<button type="button" data-go="${t.id}"><span class="n">${String(t.n).padStart(2, '0')} &middot; ${doneCount(t) ? scoreOf(t) + '/' + t.quiz.length + ' correct' : 'not started'}</span><b>${esc(t.title)}</b><small>${esc(t.kw.slice(0, 4).join(', '))}</small></button>`).join('')}</div>`;
 }
 
@@ -458,6 +461,9 @@ window.addEventListener('pagehide', () => { if (synth) synth.cancel(); });
 
 const start = location.hash.slice(1);
 show(byId(start) || ['index', 'ask'].includes(start) ? start : 'home');
+if (STANDALONE && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { /* offline support is optional */ }); });
+}
 if (window.claude && typeof window.claude.use === 'function') {
   window.claude.use('sample').then(s => { sample = s || null; botMode(); }).catch(() => {});
 }
