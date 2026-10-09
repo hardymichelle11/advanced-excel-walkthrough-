@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style></head><body>
+<title>Advanced Excel Walkthrough</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a workbook-like shell. Index rail on the left, one topic "sheet" at a time on the right,
+   each opening with a formula bar. Colours follow the practice workbook's own cell legend. */
+:root {
+  --bg: #f3f6f3; --surface: #ffffff; --sunk: #e9eeea; --ink: #16211b; --muted: #55665c; --line: #cfd9d2;
+  --accent: #1b6b45; --accent-ink: #ffffff; --accent-soft: #e0efe6;
+  --input-bg: #fff3c7; --input-ink: #1740b0; --check-bg: #dcefdc; --bad: #b0342c; --bad-soft: #fbe7e4;
+  --blue: #1f55c4; --shadow: 0 1px 2px rgba(22,33,27,.08), 0 6px 18px rgba(22,33,27,.06);
+  --display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", Consolas, "SF Mono", monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1512; --surface: #171f1b; --sunk: #1e2823; --ink: #e5ece7; --muted: #9baba1; --line: #2d3a33;
+  --accent: #62c692; --accent-ink: #0c1811; --accent-soft: #1c3327;
+  --input-bg: #3d3712; --input-ink: #a9c1ff; --check-bg: #1d3a26; --bad: #f1897e; --bad-soft: #3a1d1a;
+  --blue: #8fb0ff; --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1512; --surface: #171f1b; --sunk: #1e2823; --ink: #e5ece7; --muted: #9baba1; --line: #2d3a33;
+  --accent: #62c692; --accent-ink: #0c1811; --accent-soft: #1c3327;
+  --input-bg: #3d3712; --input-ink: #a9c1ff; --check-bg: #1d3a26; --bad: #f1897e; --bad-soft: #3a1d1a;
+  --blue: #8fb0ff; --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 17px; line-height: 1.55 }
+button, input, select { font: inherit; color: inherit }
+button { cursor: pointer }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px }
+code, pre { font-family: var(--mono); font-size: .86em }
+code { background: var(--sunk); padding: .08em .35em; border-radius: 4px; overflow-wrap: anywhere }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.15; margin: 0 }
+p { margin: 0 }
+a { color: var(--accent) }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--accent); color: var(--accent-ink);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 10px 16px }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.05rem; letter-spacing: .01em; background: none; border: 0; color: inherit; padding: 4px 0 }
+.top .grow { flex: 1 1 220px; min-width: 0 }
+#search { width: 100%; border: 0; border-radius: 6px; padding: 8px 12px; background: var(--surface); color: var(--ink) }
+.navbtn { background: transparent; color: inherit; border: 1.5px solid currentColor; border-radius: 6px; padding: 6px 12px; font-weight: 600 }
+.navbtn[aria-current="page"] { background: var(--accent-ink); color: var(--accent) }
+#menuBtn { display: none }
+
+.shell { display: grid; grid-template-columns: 290px minmax(0, 1fr); align-items: start }
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 58px); max-height: calc(100vh - 58px); overflow-y: auto; padding: 18px 12px 30px 16px; border-right: 1px solid var(--line) }
+.rail h2 { font-size: .74rem; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px 8px }
+.rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.rail button { width: 100%; text-align: left; background: none; border: 0; border-radius: 6px; padding: 7px 8px; display: grid; grid-template-columns: 26px 1fr auto; gap: 6px; align-items: baseline; font-size: .95rem; line-height: 1.3 }
+.rail button:hover { background: var(--sunk) }
+.rail button[aria-current="page"] { background: var(--accent-soft); font-weight: 700 }
+.rail .n { font-family: var(--mono); font-size: .78rem; color: var(--muted) }
+.rail .sc { font-family: var(--mono); font-size: .74rem; color: var(--muted) }
+.rail .sc.done { color: var(--accent); font-weight: 600 }
+main { min-width: 0; padding: 26px 16px 70px }
+.page { max-width: 860px; margin: 0 auto; display: grid; gap: 26px }
+.page > * { min-width: 0 }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr) }
+  #menuBtn { display: inline-block }
+  .rail { position: static; max-height: none; border-right: 0; border-bottom: 1px solid var(--line); padding: 14px 16px }
+  .rail:not(.open) { display: none }
+  body { font-size: 16px }
+}
+
+.page, .thead, .cover, .part, .quiz, .qcard, figure, .explain, .chat, .results, .faq { grid-template-columns: minmax(0, 1fr) }
+/* topic header */
+.eyebrow { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+.thead { display: grid; gap: 12px }
+.thead h1 { font-size: clamp(1.7rem, 4.5vw, 2.5rem); font-weight: 800 }
+.lead { font-size: 1.12rem; max-width: 65ch }
+.fbar { display: flex; align-items: stretch; border: 1px solid var(--line); background: var(--surface); border-radius: 6px; overflow: hidden; font-family: var(--mono); font-size: .84rem }
+.fbar .nb { padding: 7px 10px; border-right: 1px solid var(--line); min-width: 54px; text-align: center; color: var(--muted); white-space: nowrap }
+.fbar .fxi { padding: 7px 9px; border-right: 1px solid var(--line); font-style: italic; color: var(--muted) }
+.fbar .f { padding: 7px 10px; overflow-x: auto; white-space: nowrap; flex: 1; min-width: 0 }
+.chips { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: .84rem }
+.chip:hover { border-color: var(--accent) }
+
+/* audio player */
+.player { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px }
+.player .now { flex: 1 1 160px; min-width: 0; font-size: .9rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.player select { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 5px 6px; max-width: 170px; font-size: .88rem }
+.btn { background: var(--accent); color: var(--accent-ink); border: 0; border-radius: 6px; padding: 7px 14px; font-weight: 700 }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); font-weight: 600 }
+.btn.small { padding: 3px 10px; font-size: .84rem }
+.btn:disabled { opacity: .5; cursor: default }
+.reading { background: var(--accent-soft); box-shadow: 0 0 0 6px var(--accent-soft); border-radius: 2px }
+
+/* content parts */
+.part { display: grid; gap: 14px; padding-top: 22px; border-top: 1px solid var(--line) }
+.part > * { min-width: 0 }
+.part h2 { font-size: 1.32rem; font-weight: 700; display: flex; gap: 10px; align-items: center; flex-wrap: wrap }
+.part p, .part li { max-width: 68ch }
+.part ul, .part ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px }
+ol.steps { list-style: none; padding: 0; counter-reset: s; gap: 8px }
+ol.steps li { counter-increment: s; display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start }
+ol.steps li::before { content: counter(s); font-family: var(--mono); font-size: .82rem; font-weight: 600; background: var(--accent); color: var(--accent-ink); width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; margin-top: 1px }
+.label { font-family: var(--display); font-weight: 700; font-size: .8rem; letter-spacing: .07em; text-transform: uppercase; color: var(--accent) }
+.tip { background: var(--input-bg); border-radius: 6px; padding: 10px 14px; max-width: 68ch }
+.tip b { font-family: var(--display); font-size: .8rem; letter-spacing: .07em; text-transform: uppercase; margin-right: 6px }
+.scroll { overflow-x: auto }
+table.plain { border-collapse: collapse; width: 100%; font-size: .93rem }
+table.plain th { text-align: left; font-family: var(--display); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 2px solid var(--line); padding: 6px 12px 6px 0 }
+table.plain td { border-bottom: 1px solid var(--line); padding: 7px 12px 7px 0; vertical-align: top }
+table.plain td.f { font-family: var(--mono); font-size: .82rem; overflow-wrap: anywhere }
+pre.code { background: var(--sunk); border-left: 3px solid var(--accent); padding: 12px 14px; margin: 0; overflow-x: auto; border-radius: 0 6px 6px 0; line-height: 1.5 }
+
+/* figures */
+figure { margin: 0; display: grid; gap: 8px }
+figure > * { min-width: 0 }
+figcaption { font-size: .9rem; color: var(--muted); max-width: 68ch }
+.xl { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); overflow: hidden; width: fit-content; max-width: 100% }
+.xl .fbar { border: 0; border-bottom: 1px solid var(--line); border-radius: 0 }
+.xl table { border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums }
+.xl th { background: var(--sunk); color: var(--muted); font-family: var(--mono); font-weight: 400; font-size: .74rem; padding: 3px 8px; border: 1px solid var(--line); text-align: center }
+.xl td { border: 1px solid var(--line); padding: 4px 10px; white-space: pre; min-width: 64px; height: 28px }
+.xl td.num { text-align: right }
+.xl td.h { background: var(--accent); color: var(--accent-ink); font-weight: 700; text-align: center }
+.xl td.in { background: var(--input-bg); color: var(--input-ink) }
+.xl td.ok { background: var(--check-bg) }
+.xl td.err { color: var(--bad); font-weight: 700 }
+.xl td.sel { outline: 2.5px solid var(--accent); outline-offset: -2px; font-weight: 700 }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .84rem; color: var(--muted) }
+.legend i { display: inline-block; width: 14px; height: 14px; border: 1px solid var(--line); vertical-align: -2px; margin-right: 5px }
+.dialog { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); width: min(420px, 100%); overflow: hidden }
+.dialog .bar { background: var(--sunk); padding: 6px 12px; font-weight: 700; font-size: .9rem; border-bottom: 1px solid var(--line) }
+.dialog dl { margin: 0; padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; font-size: .9rem }
+.dialog dt { color: var(--muted) }
+.dialog dd { margin: 0; border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; font-family: var(--mono); font-size: .82rem; overflow-wrap: anywhere }
+.path { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .92rem }
+.path span { background: var(--surface); border: 1px solid var(--line); border-bottom: 3px solid var(--accent); padding: 4px 12px; border-radius: 4px; font-weight: 600 }
+.path i { color: var(--muted); font-style: normal }
+.tabsfig { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.tabsfig .sheet { border: 1px solid var(--line); background: var(--surface); border-radius: 6px; padding: 8px 14px; text-align: center; box-shadow: var(--shadow) }
+.tabsfig .sheet b { display: block; font-family: var(--mono); font-size: 1rem }
+.tabsfig .sheet small { display: block; border-top: 2px solid var(--accent); margin-top: 6px; padding-top: 2px; color: var(--muted); font-weight: 600 }
+.tabsfig .op { font-family: var(--mono); font-size: 1.2rem; color: var(--muted) }
+.tabsfig .sheet.total { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.tabsfig .sheet.total small { color: inherit; border-color: currentColor }
+svg.chart { width: 100%; max-width: 580px; height: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 8px }
+svg text { font-family: var(--body); font-size: 12px; fill: var(--muted); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round }
+svg .ttl { font-family: var(--display); font-weight: 700; font-size: 13px; fill: var(--ink) }
+svg .val { fill: var(--ink); font-weight: 600 }
+svg .grid { stroke: var(--line); stroke-width: 1; fill: none }
+svg .axis { stroke: var(--muted); stroke-width: 1; fill: none }
+svg .bar { fill: var(--accent) }
+svg .ln { stroke: var(--blue); stroke-width: 2.5; fill: none }
+svg .dot { fill: var(--blue) }
+svg .ln2 { stroke: var(--bad); stroke-width: 2; fill: none }
+svg .area { fill: var(--accent-soft); stroke: none }
+svg .pk { fill: var(--accent) }
+svg .box { fill: var(--surface); stroke: var(--line) }
+svg .boxsel { fill: var(--surface); stroke: var(--accent); stroke-width: 2.5 }
+svg .arrow { stroke: var(--blue); stroke-width: 2; fill: none }
+svg .ah { fill: var(--blue) }
+svg .blue { fill: var(--blue) } svg .red { fill: var(--bad) }
+
+/* quiz */
+.quiz { display: grid; gap: 16px; padding-top: 22px; border-top: 3px solid var(--accent) }
+.quiz h2 { font-size: 1.32rem }
+.qcard { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 10px }
+.qcard .qq { font-weight: 700; max-width: 68ch }
+.opts { display: grid; gap: 6px }
+.opt { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 6px; padding: 8px 12px; display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: baseline }
+.opt:not(:disabled):hover { border-color: var(--accent) }
+.opt .k { font-family: var(--mono); font-size: .82rem; color: var(--muted) }
+.opt:disabled { cursor: default; color: inherit; opacity: 1 }
+.opt.right { border-color: var(--accent); background: var(--check-bg) }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft) }
+.opt .tag { font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em }
+.opt.right .tag { color: var(--accent) } .opt.wrong .tag { color: var(--bad) }
+.explain { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; display: grid; gap: 8px }
+.explain.miss { border-color: var(--bad) }
+.explain ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font-size: .94rem }
+.explain summary { cursor: pointer; font-weight: 600; font-size: .94rem }
+.score { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-weight: 700 }
+.pager { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap }
+
+/* home */
+.cover h1 { font-size: clamp(2rem, 6vw, 3.1rem); font-weight: 800; letter-spacing: -.01em }
+.cover { display: grid; gap: 14px }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px }
+.how div { border-top: 3px solid var(--accent); padding-top: 8px; font-size: .96rem }
+.how b { display: block; font-family: var(--display) }
+.toc { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0; border: 1px solid var(--line); background: var(--line); gap: 1px; border-radius: 8px; overflow: hidden }
+.toc button { background: var(--surface); border: 0; text-align: left; padding: 12px 14px; display: grid; gap: 2px; align-content: start }
+.toc button:hover { background: var(--accent-soft) }
+.toc .n { font-family: var(--mono); font-size: .76rem; color: var(--muted) }
+.toc b { font-family: var(--display); font-size: 1rem; line-height: 1.25 }
+.toc small { color: var(--muted); font-size: .84rem }
+
+/* search + index */
+.results { display: grid; gap: 4px }
+.res { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; text-align: left; display: grid; gap: 2px; width: 100% }
+.res:hover { border-color: var(--accent) }
+.res .where { font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+.res b { font-family: var(--display) }
+.res span { font-size: .93rem; color: var(--muted) }
+mark { background: var(--input-bg); color: inherit; padding: 0 2px; border-radius: 2px }
+.az { columns: 3 220px; column-gap: 28px }
+.az section { break-inside: avoid; margin-bottom: 14px }
+.az h3 { font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--line); margin-bottom: 4px }
+.az button { background: none; border: 0; padding: 2px 0; text-align: left; display: block; width: 100% }
+.az button:hover { color: var(--accent); text-decoration: underline }
+.az small { font-family: var(--mono); color: var(--muted); font-size: .74rem }
+
+/* ask */
+.chat { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; display: grid; overflow: hidden }
+.log { padding: 14px; display: grid; gap: 12px; max-height: 480px; overflow-y: auto }
+.msg { display: grid; gap: 6px; max-width: 70ch }
+.msg.me { justify-self: end; background: var(--accent); color: var(--accent-ink); border-radius: 12px 12px 2px 12px; padding: 8px 12px }
+.msg.bot { background: var(--bg); border: 1px solid var(--line); border-radius: 12px 12px 12px 2px; padding: 10px 14px }
+.msg .meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .84rem }
+.msg .src { font-size: .76rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); font-weight: 600 }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; font-weight: 600 }
+.askform { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); flex-wrap: wrap }
+.askform input { flex: 1 1 200px; min-width: 0; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; background: var(--bg) }
+.faq { display: grid; gap: 6px }
+.faq details { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px }
+.faq summary { cursor: pointer; font-weight: 700 }
+.faq details > div { margin-top: 8px; display: grid; gap: 8px; max-width: 70ch }
+.note { font-size: .9rem; color: var(--muted) }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth } }
+</style>
+
+<header class="top">
+  <button class="navbtn" id="menuBtn" type="button" aria-expanded="false">Topics</button>
+  <button class="brand" id="homeBtn" type="button">Advanced Excel Walkthrough</button>
+  <div class="grow"><input id="search" type="search" placeholder="Search topics, functions and keywords" aria-label="Search the guide" autocomplete="off"></div>
+  <button class="navbtn" id="indexBtn" type="button">Keyword index</button>
+  <button class="navbtn" id="askBtn" type="button">Ask &amp; FAQ</button>
+</header>
+<div class="shell">
+  <nav class="rail" id="rail" aria-label="Course topics"></nav>
+  <main><div class="page" id="page"></div></main>
+</div>
+
+<script>
+/* Course content. Inline markup: [[code]] and **bold**. Grid cell prefixes:
+   ! header   ~ input   * selected   + answer check   ^ error   (none) plain */
+const TOPICS = [
+{
+  id: 't1', n: 1, title: `Charting`, sheet: `1 Charts`,
+  fx: `=SUMIFS(Data!H5:H24, Data!B5:B24, "West")`,
+  kw: [`column chart`, `bar chart`, `line chart`, `pie chart`, `combo chart`, `secondary axis`, `data labels`, `chart elements`, `legend`, `axis title`, `sparkline`, `recommended charts`, `SUMIFS`],
+  intro: `A chart turns a small summary table into a picture. The skill is choosing the chart type that fits the question, then adding only the labels the reader needs.`,
+  parts: [
+    { h: `Pick the chart that fits the question`,
+      p: [`Start from what the reader should see. Each chart type answers one kind of question well.`],
+      table: { head: [`If you want to show`, `Use`, `Example from the workbook`],
+        rows: [[`Comparison across categories`, `Column or bar`, `Revenue by month`],
+               [`Change over time`, `Line`, `Units sold Jan to May`],
+               [`Parts of one whole`, `Pie (6 slices or fewer)`, `Revenue share by region`],
+               [`Two measures on different scales`, `Combo with a secondary axis`, `Revenue ($) and units together`],
+               [`Relationship between two numbers`, `Scatter (XY)`, `Price against profit`]] } },
+    { h: `Example: revenue by month`,
+      p: [`The chart reads from a summary table, and the summary table reads from the Data sheet with [[SUMIFS]]. Change an order on Data and the chart moves by itself.`],
+      fig: { type: 'grid', name: `C5`, fx: `=SUMIFS(Data!H5:H24, Data!A5:A24, ">="&A5, Data!A5:A24, "<="&EOMONTH(A5,0))`, cols: `BCD`, row: 4,
+        rows: [[`!Label`, `!Revenue`, `!Units`], [`Jan`, `*$8,100`, `79`], [`Feb`, `$10,400`, `59`], [`Mar`, `$9,350`, `85`], [`Apr`, `$7,375`, `70`], [`May`, `$7,350`, `109`], [`Total`, `$42,575`, `402`]],
+        cap: `The summary table on the 1 Charts sheet. Select B4:C9 to chart revenue.` },
+      fig2: { type: 'bars', title: `Revenue by month`, labels: [`Jan`, `Feb`, `Mar`, `Apr`, `May`], values: [8100, 10400, 9350, 7375, 7350], max: 12000, step: 3000,
+        cap: `The finished column chart. February is the tallest column at $10,400.` },
+      steps: [`Select [[B4:C9]] (labels and revenue, including the header row).`,
+              `Go to **Insert > Recommended Charts** and choose **Clustered Column**.`,
+              `Click the chart, then the **+** button (Chart Elements). Tick **Data Labels** and **Axis Titles**.`,
+              `Click the chart title and type a title that says what the chart shows.`] },
+    { h: `Combo chart with a secondary axis`,
+      p: [`Revenue runs into the thousands and units stay under 110. On one axis the units line would lie flat along the bottom. A secondary axis gives units their own scale on the right side.`],
+      fig: { type: 'combo', title: `Revenue (columns) and units (line)`, labels: [`Jan`, `Feb`, `Mar`, `Apr`, `May`], bars: [8100, 10400, 9350, 7375, 7350], line: [79, 59, 85, 70, 109], max: 12000, step: 3000, max2: 120, step2: 30,
+        cap: `Columns use the left axis (dollars). The line uses the right axis (units).` },
+      steps: [`Select [[B4:D9]].`, `**Insert > Recommended Charts > All Charts > Combo**.`, `Set Revenue to **Clustered Column** and Units to **Line**.`, `Tick **Secondary Axis** beside Units, then OK.`],
+      tip: `A pie chart only works for one series that adds up to a meaningful total. With more than about six slices, switch to a bar chart.` }
+  ],
+  quiz: [
+    { q: `You need monthly revenue (about $7,000 to $10,000) and monthly units (59 to 109) on one chart. Which setup shows both clearly?`,
+      o: [`A pie chart with ten slices`, `A combo chart with units on a secondary axis`, `A single column chart with both series on one axis`, `Two data labels on one line chart`],
+      a: 1,
+      why: `The two measures are on very different scales. A combo chart draws revenue as columns on the left axis and units as a line on its own right-hand axis, so both are readable.`,
+      not: [`A pie chart shows parts of one whole. Revenue and units do not add up to anything together.`, ``, `On one shared axis the units (under 110) would be invisible next to revenue in the thousands.`, `Data labels do not fix the scale problem. The units line would still sit flat on the bottom.`] },
+    { q: `When is a pie chart a reasonable choice?`,
+      o: [`To show a trend across 24 months`, `To compare two series side by side`, `To show how one total splits into a few parts`, `To show the relationship between price and profit`],
+      a: 2,
+      why: `A pie shows parts of a single whole, such as total revenue of $42,575 split across four regions. It needs one series and only a few slices.`,
+      not: [`Trends over time belong on a line chart.`, `A pie can only hold one series. Use clustered columns to compare two.`, ``, `A relationship between two numeric variables is a scatter chart.`] },
+    { q: `You change an order quantity on the Data sheet. What happens to the column chart on the 1 Charts sheet?`,
+      o: [`Nothing until you click Refresh`, `It updates by itself`, `It shows a #REF! error`, `You must delete and rebuild it`],
+      a: 1,
+      why: `The chart is linked to cells, and those cells hold SUMIFS formulas that recalculate as soon as Data changes. Charts built on formulas are always live.`,
+      not: [`Refresh is needed for PivotTables and imported queries, not for ordinary charts on formulas.`, ``, `#REF! only appears when a referenced cell is deleted.`, `The link between chart and cells stays intact when values change.`] }
+  ]
+},
+{
+  id: 't2', n: 2, title: `Date and time functions`, sheet: `2 Dates`,
+  fx: `=NETWORKDAYS(B4, B5)`,
+  kw: [`serial number`, `TODAY`, `NOW`, `DATE`, `YEAR`, `MONTH`, `DAY`, `EDATE`, `EOMONTH`, `WEEKDAY`, `WEEKNUM`, `NETWORKDAYS`, `WORKDAY`, `DATEDIF`, `YEARFRAC`, `TIME`, `HOUR`, `TEXT`, `volatile function`, `date format`],
+  intro: `Excel stores every date as a whole number and every time as a fraction of a day. Once you know that, date arithmetic is ordinary arithmetic.`,
+  parts: [
+    { h: `Dates are numbers`,
+      p: [`Day 1 is January 1, 1900. January 15, 2026 is day **46,037**. The date you see is only a number format laid over that serial number.`,
+          `Times are fractions of one day: 6:00 AM is 0.25, noon is 0.5, and 8:30 AM is about 0.354.`],
+      fig: { type: 'grid', name: `C16`, fx: `=B4`, cols: `ABC`, row: 4,
+        rows: [[`Start date`, `~Jan 15, 2026`, ``], [`End date`, `~Oct 8, 2026`, ``], [`Clock in`, `~8:30 AM`, ``], [`Clock out`, `~5:15 PM`, ``], [`Serial behind start date`, `=B4`, `*46037`], [`Days between`, `=B5-B4`, `266`]],
+        cap: `The same cell shown with a General format reveals the serial number.` },
+      tip: `If a subtraction shows a strange date such as 9/22/1900, the answer is right and the format is wrong. Change the cell format to General or Number.` },
+    { h: `The functions you will use most`,
+      p: [`All results below use the start date Jan 15, 2026 (a Thursday) and the end date Oct 8, 2026 from the 2 Dates sheet.`],
+      table: { head: [`You want`, `Formula`, `Result`],
+        rows: [[`Today's date`, `=TODAY()`, `Updates every day`],
+               [`Build a date safely`, `=DATE(2026,12,25)`, `Dec 25, 2026`],
+               [`Same day 3 months later`, `=EDATE(B4,3)`, `Apr 15, 2026`],
+               [`Last day of that month`, `=EOMONTH(B4,0)`, `Jan 31, 2026`],
+               [`Whole months between`, `=DATEDIF(B4,B5,"m")`, `8`],
+               [`Working days between`, `=NETWORKDAYS(B4,B5)`, `191`],
+               [`10 working days later`, `=WORKDAY(B4,10)`, `Jan 29, 2026`],
+               [`Day name`, `=TEXT(B4,"dddd")`, `Thursday`],
+               [`Day-of-week number`, `=WEEKDAY(B4)`, `5 (Sunday = 1)`]] },
+      tip: `TODAY and NOW are volatile: they recalculate every time the workbook does. Never use them where you need a fixed timestamp.` },
+    { h: `Example: hours worked`,
+      p: [`Subtracting two times gives a fraction of a day. Multiply by 24 to turn it into hours.`],
+      fig: { type: 'grid', name: `C27`, fx: `=(B7-B6)*24`, cols: `ABC`, row: 6,
+        rows: [[`Clock in`, `~8:30 AM`, ``], [`Clock out`, `~5:15 PM`, ``], [`Hours worked`, `=(B7-B6)*24`, `*8.75`]],
+        cap: `5:15 PM minus 8:30 AM is 0.3646 of a day. Times 24 gives 8.75 hours.` },
+      steps: [`Type the clock-in and clock-out times in [[B6]] and [[B7]].`, `In another cell type [[=(B7-B6)*24]].`, `Format the result as a Number with 2 decimals. You should see 8.75.`] }
+  ],
+  quiz: [
+    { q: `B4 holds Jan 15, 2026 and B5 holds Oct 8, 2026. You type =B5-B4 and the cell shows 9/22/1900. What is going on?`,
+      o: [`The formula is wrong and should use DATEDIF`, `Excel cannot subtract dates`, `The answer (266) is right but the cell is formatted as a date`, `One of the dates was typed as text`],
+      a: 2,
+      why: `Dates are serial numbers, so B5-B4 correctly gives 266. Excel copied the date format onto the result, and day 266 of the year 1900 is September 22. Change the format to General to see 266.`,
+      not: [`Plain subtraction is the normal way to count days. DATEDIF is for whole months or years.`, `Subtracting dates works because each date is a number.`, ``, `Text dates would give a #VALUE! error, not a date in 1900.`] },
+    { q: `What does =EOMONTH(B4,0) return when B4 is Jan 15, 2026?`,
+      o: [`Jan 31, 2026`, `Feb 28, 2026`, `Feb 15, 2026`, `Jan 1, 2026`],
+      a: 0,
+      why: `EOMONTH returns the last day of a month. The second argument is how many months to move first, and 0 means stay in the same month, so the result is Jan 31, 2026.`,
+      not: [``, `That is =EOMONTH(B4,1), one month ahead.`, `That is =EDATE(B4,1), which keeps the same day number.`, `For the first day of the month use =DATE(YEAR(B4),MONTH(B4),1).`] },
+    { q: `Clock-in is 8:30 AM in B6 and clock-out is 5:15 PM in B7. Which formula returns 8.75 hours?`,
+      o: [`=B7-B6`, `=(B7-B6)*24`, `=HOUR(B7)-HOUR(B6)`, `=(B7-B6)/24`],
+      a: 1,
+      why: `A time is a fraction of a 24-hour day. B7-B6 is about 0.3646 days, and multiplying by 24 converts days into hours: 8.75.`,
+      not: [`This gives 0.3646, which Excel may display as 8:45 AM. It is a fraction of a day, not hours.`, ``, `HOUR drops the minutes, so this returns 17 - 8 = 9.`, `Dividing makes the number smaller. You need to multiply to go from days to hours.`] }
+  ]
+},
+{
+  id: 't3', n: 3, title: `PivotTables`, sheet: `3 PivotTables`,
+  fx: `=GETPIVOTDATA("Revenue", $A$3, "Region", "West")`,
+  kw: [`PivotTable`, `Rows area`, `Columns area`, `Values area`, `Filters area`, `refresh`, `slicer`, `group dates`, `Show Values As`, `% of grand total`, `value field settings`, `drill down`, `PivotChart`, `calculated field`, `GETPIVOTDATA`],
+  intro: `A PivotTable summarises a long list by dragging field names into four boxes. You write no formulas, and you can rearrange the summary in seconds.`,
+  parts: [
+    { h: `The four areas`,
+      p: [`Every PivotTable is built from the same four drop zones. Fields are the column headers of your source data.`],
+      fig: { type: 'dialog', title: `PivotTable Fields`, fields: [[`Filters`, `(empty)`], [`Columns`, `Category`], [`Rows`, `Region`], [`Values`, `Sum of Revenue`]],
+        cap: `Region down the side, Category across the top, Revenue added up in the middle.` },
+      list: [`**Rows**: one line per unique value (each region).`, `**Columns**: one column per unique value (each category).`, `**Values**: the number to summarise. Numbers default to Sum, text defaults to Count.`, `**Filters**: a dropdown above the table that limits everything below it.`] },
+    { h: `Example: revenue by region and category`,
+      p: [`The source is the 20-row table on the Data sheet. The finished PivotTable should match this answer check exactly.`],
+      fig: { type: 'grid', name: `E21`, fx: `Grand Total`, cols: `ABCDE`, row: 16,
+        rows: [[`!Region`, `!Hardware`, `!Accessories`, `!Software`, `!Grand Total`], [`East`, `$5,850`, `$2,050`, `$1,800`, `$9,700`], [`West`, `$7,900`, `$1,475`, `$2,400`, `$11,775`], [`North`, `$4,700`, `$2,500`, `$1,200`, `$8,400`], [`South`, `$7,500`, `$2,200`, `$3,000`, `$12,700`], [`Grand Total`, `$25,950`, `$8,225`, `$8,400`, `*$42,575`]],
+        cap: `Twenty orders collapse into a 4 by 3 summary. The grand total equals the total on the Data sheet.` },
+      steps: [`Click any cell inside the table on the **Data** sheet.`, `**Insert > PivotTable > New Worksheet > OK**.`, `Drag **Region** to Rows, **Category** to Columns and **Revenue** to Values.`, `Right-click any number, choose **Number Format**, pick Currency with 0 decimals.`, `Compare your grand total with $42,575.`] },
+    { h: `Refresh, slicers and other options`,
+      list: [`**Refresh**: a PivotTable is a snapshot. After the source data changes, use **PivotTable Analyze > Refresh**.`, `**Slicer**: PivotTable Analyze > Insert Slicer adds clickable filter buttons, for example one button per rep.`, `**Group dates**: drag Date into Rows and Excel groups it into months. Right-click > Group to choose quarters or years.`, `**Show Values As**: right-click a value > Show Values As > % of Grand Total turns sums into shares.`, `**Drill down**: double-click any number to get a new sheet listing the rows behind it.`, `**Summarise differently**: Value Field Settings switches Sum to Count, Average, Max or Min.`],
+      tip: `Turn the source into a Table first (Ctrl+T). New rows are then picked up on Refresh without redefining the range.` }
+  ],
+  quiz: [
+    { q: `You change an order on the Data sheet but your PivotTable still shows the old totals. What do you do?`,
+      o: [`Press F9 to recalculate`, `Use PivotTable Analyze > Refresh`, `Rebuild the PivotTable from scratch`, `Save and reopen the file`],
+      a: 1,
+      why: `A PivotTable stores its own copy of the source data (the pivot cache). It only rereads the source when you Refresh.`,
+      not: [`F9 recalculates formulas. A PivotTable is not a formula.`, ``, `Rebuilding works but is unnecessary. Refresh keeps your layout.`, `Reopening does not refresh unless you switched on "Refresh data when opening the file".`] },
+    { q: `In the example, which layout produces one row per region and one column per category?`,
+      o: [`Region in Values, Category in Rows`, `Region in Rows, Category in Columns, Revenue in Values`, `Revenue in Rows, Region in Columns`, `Category in Filters, Region in Values`],
+      a: 1,
+      why: `Rows makes one line for each unique region, Columns makes one column for each unique category, and Values adds up the revenue where they cross.`,
+      not: [`Region is text, so in Values it would only be counted.`, ``, `Putting Revenue in Rows lists every different revenue amount as its own line.`, `Filters only limits the data. It does not lay anything out across the top.`] },
+    { q: `You want each region's revenue shown as a share of the $42,575 total. What is the quickest way?`,
+      o: [`Add a helper column to the source data`, `Right-click a value > Show Values As > % of Grand Total`, `Change the number format to Percentage`, `Add a slicer for Region`],
+      a: 1,
+      why: `Show Values As recalculates the display without changing the data. West would show 27.7%, which is $11,775 divided by $42,575.`,
+      not: [`It works, but it is slow and has to be redone when the layout changes.`, ``, `Formatting $11,775 as a percentage shows 1,177,500%. It does not divide by the total.`, `A slicer filters. It does not calculate shares.`] }
+  ]
+},
+{
+  id: 't4', n: 4, title: `Working with internal and external data`, sheet: `4 External Data`,
+  fx: `=PROPER(TRIM(LEFT(A6, FIND("|", A6) - 1)))`,
+  kw: [`Excel Table`, `Ctrl+T`, `structured reference`, `named range`, `Get Data`, `Power Query`, `CSV import`, `Refresh All`, `Text to Columns`, `Flash Fill`, `TRIM`, `PROPER`, `UPPER`, `LEFT`, `MID`, `FIND`, `SUBSTITUTE`, `VALUE`, `remove duplicates`, `delimiter`],
+  intro: `Internal data lives in your workbook, ideally in a Table. External data lives in a file or database, and you bring it in as a refreshable query instead of copying and pasting.`,
+  parts: [
+    { h: `Internal data: Tables and structured references`,
+      p: [`Press **Ctrl+T** inside a list to make it a Table. The Data sheet is a Table named SalesData. Formulas can then use column names instead of cell addresses.`],
+      table: { head: [`Ordinary reference`, `Structured reference`, `Why it is better`],
+        rows: [[`=SUM(H5:H24)`, `=SUM(SalesData[Revenue])`, `Grows when rows are added`],
+               [`=AVERAGE(F5:F24)`, `=AVERAGE(SalesData[Units])`, `Readable without looking up the column`],
+               [`=SUMIFS(H5:H24,B5:B24,"West")`, `=SUMIFS(SalesData[Revenue],SalesData[Region],"West")`, `Survives inserted columns`]] } },
+    { h: `External data: import a CSV as a query`,
+      p: [`The companion file regional_targets.csv holds a Q1 target for each region. Importing it with Get Data creates a link, so the workbook can be refreshed when the file changes.`],
+      fig: { type: 'path', items: [`Data`, `Get Data`, `From File`, `From Text/CSV`], cap: `The ribbon path for importing a text file.` },
+      fig2: { type: 'grid', name: `A1`, fx: `Region`, cols: `ABC`, row: 1,
+        rows: [[`!Region`, `!Quarter`, `!Target`], [`East`, `Q1`, `7000`], [`West`, `Q1`, `9000`], [`North`, `Q1`, `6000`], [`South`, `Q1`, `5500`]],
+        cap: `The imported query lands on a new sheet as a Table.` },
+      steps: [`Save **regional_targets.csv** to your computer.`, `**Data > Get Data > From File > From Text/CSV** and choose the file.`, `Check the preview: comma delimiter, Target detected as a number. Click **Load**.`, `Edit the CSV in Notepad (change East to 7500) and save it.`, `Back in Excel, **Data > Refresh All**. The new value appears.`] },
+    { h: `Cleaning imported text`,
+      p: [`Data from other systems arrives with stray spaces, mixed capitals and several values jammed into one cell. A few text functions fix most of it.`],
+      fig: { type: 'grid', name: `B6`, fx: `=PROPER(TRIM(LEFT(A6, FIND("|", A6) - 1)))`, cols: `ABCD`, row: 5,
+        rows: [[`!Raw text as imported`, `!Name`, `!Region`, `!Amount`], [`  avery|EAST|3,600 `, `*Avery`, `East`, `$3,600`], [`BLAKE |west| 2,500`, `Blake`, `West`, `$2,500`], [` casey|North|1,000  `, `Casey`, `North`, `$1,000`]],
+        cap: `FIND locates the | character, LEFT takes what is before it, TRIM removes spaces, PROPER fixes capitals.` },
+      list: [`[[TRIM]] removes leading, trailing and doubled spaces.`, `[[PROPER]], [[UPPER]] and [[LOWER]] fix capitalisation.`, `[[LEFT]], [[MID]] and [[RIGHT]] cut out part of a text. [[FIND]] tells them where to cut.`, `[[VALUE]] turns text that looks like a number into a real number.`, `**Data > Text to Columns** splits a column at a delimiter in one step.`, `**Flash Fill** (Ctrl+E) copies a pattern you type in the first row.`] }
+  ],
+  quiz: [
+    { q: `You imported regional_targets.csv with Get Data. A colleague then edits the CSV file. How do you bring the new numbers into the workbook?`,
+      o: [`Copy and paste from the CSV again`, `Data > Refresh All`, `Press F9`, `Nothing, the workbook updates instantly`],
+      a: 1,
+      why: `Get Data creates a query that remembers where the file is. Refresh All reruns every query and reloads the current contents.`,
+      not: [`Copy and paste breaks the link and has to be repeated every time.`, ``, `F9 recalculates formulas. It does not reread external files.`, `Queries only update on refresh (or on a refresh schedule you set).`] },
+    { q: `Cell A6 contains "  avery " with extra spaces. Which formula returns "Avery"?`,
+      o: [`=UPPER(A6)`, `=PROPER(TRIM(A6))`, `=LEFT(A6,5)`, `=VALUE(A6)`],
+      a: 1,
+      why: `TRIM strips the extra spaces first, then PROPER capitalises the first letter and lowers the rest, giving Avery.`,
+      not: [`UPPER returns "  AVERY " with the spaces still there.`, ``, `LEFT takes the first five characters, and two of them are spaces: "  ave".`, `VALUE converts number-like text to a number. On a name it returns #VALUE!.`] },
+    { q: `What is the main advantage of =SUM(SalesData[Revenue]) over =SUM(H5:H24)?`,
+      o: [`It calculates faster`, `It includes new rows added to the Table automatically`, `It works when the workbook is closed`, `It ignores hidden rows`],
+      a: 1,
+      why: `A structured reference points at the whole Table column by name. When a 21st order is added, the Table grows and the formula covers it without editing.`,
+      not: [`Speed is the same.`, ``, `Closed-workbook behaviour is about external links, not Tables.`, `Ignoring hidden rows is what SUBTOTAL does.`] }
+  ]
+},
+{
+  id: 't5', n: 5, title: `Sorting and filtering`, sheet: `5 Sort Filter`,
+  fx: `=FILTER(A6:F25, (B6:B25="West") * (F6:F25>2000))`,
+  kw: [`sort`, `multi-level sort`, `custom sort`, `AutoFilter`, `number filter`, `top 10`, `Advanced Filter`, `criteria range`, `AND criteria`, `OR criteria`, `SORT function`, `FILTER function`, `UNIQUE function`, `SUBTOTAL`, `wildcard`],
+  intro: `Sorting changes the order of rows. Filtering hides the rows you do not want. Advanced Filter and the FILTER function go further and extract matching rows to a new place.`,
+  parts: [
+    { h: `Sort on more than one column`,
+      p: [`A single A to Z click sorts by one column. For "by region, then biggest order first" use the Sort dialog and add levels.`],
+      fig: { type: 'dialog', title: `Sort`, fields: [[`Sort by`, `Region  ·  A to Z`], [`Then by`, `Revenue  ·  Largest to Smallest`]], cap: `Each level only breaks ties left by the level above it.` },
+      steps: [`Click any cell in the list on the **5 Sort Filter** sheet.`, `**Data > Sort**. Sort by Region, A to Z.`, `Click **Add Level**. Then by Revenue, Largest to Smallest. OK.`] },
+    { h: `AutoFilter`,
+      list: [`**Data > Filter** adds a dropdown arrow to every header.`, `Untick **Select All**, then tick the values to keep.`, `**Number Filters** offers Greater Than, Between and Top 10 (you can change 10 to any number).`, `Text filters accept wildcards: [[*]] for any characters and [[?]] for one character.`, `Filters on several columns combine as AND.`, `**Data > Clear** removes all filters and shows every row again.`],
+      tip: `SUM keeps adding hidden rows. Use =SUBTOTAL(109, F6:F25) to total only the rows that are still visible.` },
+    { h: `Example: Advanced Filter with a criteria range`,
+      p: [`Advanced Filter reads its conditions from cells. The criteria range repeats the column headers, with the conditions typed underneath.`],
+      fig: { type: 'grid', name: `H6`, fx: `West`, cols: `HI`, row: 5, rows: [[`!Region`, `!Revenue`], [`*~West`, `~>2000`]], cap: `Conditions on the same row mean AND: West and over $2,000.` },
+      fig2: { type: 'grid', name: `H22`, fx: `1/12/2026`, cols: `HIJ`, row: 21, rows: [[`!Date`, `!Product`, `!Revenue`], [`+Jan 12, 2026`, `+Monitor`, `+$2,500`], [`+Feb 9, 2026`, `+Laptop`, `+$5,400`], [`+Mar 9, 2026`, `+License`, `+$2,400`]], cap: `Three of the five West orders pass the test.` },
+      steps: [`Click inside the list, then **Data > Advanced**.`, `List range: [[$A$5:$F$25]]. Criteria range: [[$H$5:$I$6]].`, `Choose **Copy to another location** and set Copy to [[$H$22]]. OK.`, `To get OR instead, put the second condition on its own row and extend the criteria range to include it.`],
+      tip: `In Excel 365 the formula at the top of this page does the same job and updates itself: multiply conditions for AND, add them for OR.` }
+  ],
+  quiz: [
+    { q: `In an Advanced Filter criteria range, "West" and ">2000" sit on the same row under Region and Revenue. Which rows are returned?`,
+      o: [`Rows that are West or over $2,000`, `Rows that are West and over $2,000`, `All West rows`, `All rows over $2,000`],
+      a: 1,
+      why: `Conditions on the same row must all be true together (AND). That returns the three West orders above $2,000: $2,500, $5,400 and $2,400.`,
+      not: [`OR needs the conditions on separate rows.`, ``, `The Revenue condition also applies, so West orders of $875 and $600 are left out.`, `The Region condition also applies, so large orders from other regions are left out.`] },
+    { q: `You filter the list to West only. Which formula totals just the visible revenue?`,
+      o: [`=SUM(F6:F25)`, `=SUBTOTAL(109, F6:F25)`, `=COUNT(F6:F25)`, `=SUMIF(F6:F25, "West")`],
+      a: 1,
+      why: `SUBTOTAL skips rows hidden by a filter. Function number 109 means SUM, ignoring hidden rows. For West it returns $11,775.`,
+      not: [`SUM adds every row in the range, hidden or not, and returns $42,575.`, ``, `COUNT counts cells with numbers. It does not add them.`, `This looks for the word West inside the revenue column, which holds numbers, so it returns 0.`] },
+    { q: `How do you sort by Region A to Z and, within each region, by Revenue from largest to smallest?`,
+      o: [`Click A to Z on Region, then Z to A on Revenue`, `Data > Sort, with Region as the first level and Revenue as the second`, `Filter by Region, then sort Revenue`, `It is not possible in Excel`],
+      a: 1,
+      why: `The Sort dialog applies levels in order. Region decides the main order and Revenue only orders the rows inside each region.`,
+      not: [`The second click re-sorts the entire list by revenue and mixes the regions back together.`, ``, `Filtering shows one region at a time. It does not produce one sorted list.`, `Multi-level sorting is a standard feature.`] }
+  ]
+},
+{
+  id: 't6', n: 6, title: `Extracting and querying data`, sheet: `6 Lookup Query`,
+  fx: `=INDEX(Data!L5:L9, MATCH(B4, Data!K5:K9, 0))`,
+  kw: [`VLOOKUP`, `exact match`, `approximate match`, `HLOOKUP`, `INDEX`, `MATCH`, `XLOOKUP`, `two-way lookup`, `IFERROR`, `DSUM`, `DCOUNT`, `DAVERAGE`, `DMAX`, `DGET`, `database functions`, `SUMIFS`, `COUNTIFS`, `lookup table`, `absolute reference`],
+  intro: `Lookups fetch one matching value from a table. Database functions and SUMIFS answer questions about every row that meets your conditions.`,
+  parts: [
+    { h: `VLOOKUP: exact and approximate`,
+      p: [`[[=VLOOKUP(what, table, column number, FALSE)]] searches the first column of a table and returns a value from the same row. FALSE asks for an exact match.`,
+          `TRUE asks for an approximate match: Excel takes the last row that is not greater than the lookup value. The first column must be sorted ascending. This is how tiered rates work.`],
+      fig: { type: 'grid', name: `B11`, fx: `=VLOOKUP(B10, $E$6:$F$8, 2, TRUE)`, cols: `ABCDEF`, row: 5,
+        rows: [[``, ``, ``, ``, `!Revenue from`, `!Rate`], [``, ``, ``, ``, `~$0`, `~2%`], [``, ``, ``, ``, `~$5,000`, `~4%`], [``, ``, ``, ``, `~$10,000`, `~6%`], [``, ``, ``, ``, ``, ``], [`Rep revenue`, `~$9,700`, ``, ``, ``, ``], [`Rate`, `*4%`, ``, ``, ``, ``], [`Commission`, `$388`, ``, ``, ``, ``]],
+        cap: `$9,700 is past $5,000 but has not reached $10,000, so the rate is 4% and the commission is $388.` } },
+    { h: `INDEX and MATCH, and XLOOKUP`,
+      p: [`[[MATCH]] finds the position of a value in a list. [[INDEX]] returns the item at a position. Together they look up in any direction and do not break when columns are inserted.`],
+      table: { head: [`Task`, `Formula`, `Result`],
+        rows: [[`Price of Monitor (VLOOKUP)`, `=VLOOKUP(B4,Data!$K$5:$M$9,3,FALSE)`, `$250`],
+               [`Category of Monitor (INDEX/MATCH)`, `=INDEX(Data!$L$5:$L$9,MATCH(B4,Data!$K$5:$K$9,0))`, `Hardware`],
+               [`Price of Monitor (XLOOKUP, Excel 365)`, `=XLOOKUP(B4,Data!K5:K9,Data!M5:M9,"Not found")`, `$250`],
+               [`West and Hardware (two-way)`, `=INDEX(table,MATCH("West",regions,0),MATCH("Hardware",categories,0))`, `$7,900`]] },
+      tip: `Wrap a lookup in IFERROR to replace #N/A with a friendly message: =IFERROR(VLOOKUP(...), "Not found").` },
+    { h: `Example: database functions`,
+      p: [`[[DSUM]], [[DCOUNT]], [[DAVERAGE]] and [[DMAX]] all take the same three arguments: the whole database including headers, the field to calculate, and a criteria range.`],
+      fig: { type: 'grid', name: `B20`, fx: `=DSUM(Data!$A$4:$H$24, "Revenue", $E$20:$F$21)`, cols: `ABCDEF`, row: 20,
+        rows: [[`Total revenue of matching orders`, `*$10,300`, ``, ``, `!Region`, `!Revenue`], [`Number of matching orders`, `3`, ``, ``, `~West`, `~>2000`], [`Average matching order`, `$3,433.33`, ``, ``, ``, ``], [`Largest matching order`, `$5,400`, ``, ``, ``, ``]],
+        cap: `Change the criteria in E21:F21 and all four answers update together.` },
+      steps: [`On **6 Lookup Query**, change [[E21]] from West to South.`, `Watch B20:B23 change. Only the criteria cells were edited, not the formulas.`, `Compare B20 with B24, which gets the same total using SUMIFS.`] }
+  ],
+  quiz: [
+    { q: `The tier table starts at $0 (2%), $5,000 (4%) and $10,000 (6%). What does =VLOOKUP(9700, tiers, 2, TRUE) return?`,
+      o: [`2%`, `4%`, `6%`, `#N/A`],
+      a: 1,
+      why: `With TRUE, VLOOKUP finds the last tier that does not exceed 9,700. That is the $5,000 row, so it returns 4%.`,
+      not: [`2% is the $0 tier, but 9,700 has also passed the $5,000 tier.`, ``, `6% only starts at $10,000 and 9,700 has not reached it.`, `#N/A would appear with FALSE (exact match), because 9,700 is not in the table.`] },
+    { q: `Why do many people prefer INDEX/MATCH over VLOOKUP?`,
+      o: [`It can return a value from a column to the left of the lookup column`, `It is the only one that works with numbers`, `It never needs absolute references`, `It sorts the table for you`],
+      a: 0,
+      why: `VLOOKUP can only look to the right of its first column and depends on a hard-coded column number. INDEX/MATCH points at the lookup column and the return column separately, so direction and inserted columns do not matter.`,
+      not: [``, `Both work with numbers and text.`, `Both need absolute references when copied down.`, `Neither function sorts anything.`] },
+    { q: `In =DSUM(Data!$A$4:$H$24, "Revenue", $E$20:$F$21), what is the third argument?`,
+      o: [`The column to add up`, `The criteria range: header cells with conditions beneath them`, `The number of rows to return`, `The sheet to write the result on`],
+      a: 1,
+      why: `The third argument is the criteria range. Its top row repeats field names from the database and the row below holds the conditions (West and >2000).`,
+      not: [`The column to add is the second argument, "Revenue".`, ``, `DSUM returns one number, not rows.`, `Functions always return their result in the cell that holds them.`] }
+  ]
+},
+{
+  id: 't7', n: 7, title: `Models with multiple worksheets and workbooks`, sheet: `7 Multi-Sheet`,
+  fx: `=SUM(Jan:Mar!B5)`,
+  kw: [`sheet reference`, `3-D reference`, `group sheets`, `external reference`, `workbook link`, `Edit Links`, `Consolidate`, `cross-sheet formula`, `quoted sheet name`, `summary sheet`, `break links`],
+  intro: `Real models spread across sheets: one per month, region or department, plus a summary. The trick is to keep every sheet in the same layout so that one formula can reach through all of them.`,
+  parts: [
+    { h: `Referring to another sheet`,
+      table: { head: [`Reference`, `Meaning`],
+        rows: [[`=Jan!B5`, `Cell B5 on the sheet named Jan`],
+               [`='7 Multi-Sheet'!E9`, `Sheet names with spaces need single quotes`],
+               [`=SUM(Jan:Mar!B5)`, `B5 on Jan, on Mar and on every sheet between them (a 3-D reference)`],
+               [`='[Budget2026.xlsx]Jan'!$B$9`, `A cell in another workbook (an external link)`]] },
+      tip: `The quickest way to write any of these is to type = and then click the cell on the other sheet. Excel writes the reference for you.` },
+    { h: `Example: quarterly total with a 3-D reference`,
+      p: [`Jan, Feb and Mar each hold East revenue in B5. One formula adds all three.`],
+      fig: { type: 'tabs', tabs: [`Jan`, `Feb`, `Mar`], vals: [`$3,600`, `$1,800`, `$1,250`], total: `$6,650`, cap: `=SUM(Jan:Mar!B5) reaches through the stack of sheets and adds the same cell on each.` },
+      fig2: { type: 'grid', name: `E5`, fx: `=SUM(Jan:Mar!B5)`, cols: `ABCDE`, row: 4,
+        rows: [[`!Region`, `!Jan`, `!Feb`, `!Mar`, `!Q1 Revenue`], [`East`, `$3,600`, `$1,800`, `$1,250`, `*$6,650`], [`West`, `$2,500`, `$5,400`, `$2,400`, `$10,300`], [`North`, `$1,000`, `$2,000`, `$2,700`, `$5,700`], [`South`, `$1,000`, `$1,200`, `$3,000`, `$5,200`], [`Total`, `$8,100`, `$10,400`, `$9,350`, `$27,850`]],
+        cap: `The summary on the 7 Multi-Sheet sheet.` },
+      steps: [`Click [[E5]] on **7 Multi-Sheet** and press F2 to see the 3-D reference.`, `Insert a new sheet between Jan and Mar with the same layout. The totals include it automatically.`, `Group edit: click the Jan tab, Shift+click Mar, then type. The entry lands on all three sheets. Right-click a tab > **Ungroup Sheets** when finished.`] },
+    { h: `Linking workbooks`,
+      list: [`An external reference includes the file name in square brackets: [['[Budget2026.xlsx]Jan'!$B$9]].`, `When the source workbook is closed, Excel shows the full folder path in the formula.`, `**Data > Edit Links** (called Workbook Links in newer versions) lets you update values, point to a different file or break the link.`, `Breaking a link replaces the formula with its current value. This cannot be undone.`, `**Data > Consolidate** adds up matching ranges from several sheets or workbooks without writing formulas.`],
+      tip: `Links break when the source file is renamed or moved. Keep linked files together in one folder and use Edit Links > Change Source if a file moves.` }
+  ],
+  quiz: [
+    { q: `What does =SUM(Jan:Mar!B5) add up?`,
+      o: [`Cells B5 on the Jan sheet through to cell B5 on the same sheet`, `Cell B5 on Jan, Mar and every sheet positioned between them`, `Column B on the Jan and Mar sheets only`, `Rows 1 to 5 on three sheets`],
+      a: 1,
+      why: `A 3-D reference names a first and last sheet. Excel adds the same cell on those two sheets and on every tab sitting between them, which here gives 3,600 + 1,800 + 1,250 = 6,650.`,
+      not: [`A range within one sheet would be written Jan!B5:B5.`, ``, `Feb is between them, so it is included too, and only cell B5 is added.`, `The reference is to one cell per sheet.`] },
+    { q: `Which formula correctly refers to cell E9 on a sheet named 7 Multi-Sheet?`,
+      o: [`=7 Multi-Sheet!E9`, `='7 Multi-Sheet'!E9`, `=[7 Multi-Sheet]E9`, `="7 Multi-Sheet"!E9`],
+      a: 1,
+      why: `A sheet name that contains a space (or starts with a digit) must be wrapped in single quotes, followed by an exclamation mark and the cell.`,
+      not: [`Without quotes Excel cannot tell where the sheet name ends.`, ``, `Square brackets are for workbook file names, not sheet names.`, `Double quotes make a text string, not a reference.`] },
+    { q: `You insert a new sheet called Feb2 between Jan and Mar, using the same layout. What happens to =SUM(Jan:Mar!B5)?`,
+      o: [`It returns #REF!`, `It now includes B5 from Feb2 as well`, `It ignores the new sheet`, `It changes to =SUM(Jan:Feb2!B5)`],
+      a: 1,
+      why: `A 3-D reference covers whatever sheets sit between the two named tabs. A sheet placed inside that span is picked up automatically, which is why identical layouts matter.`,
+      not: [`Nothing was deleted, so no reference is broken.`, ``, `Position decides membership. Anything between Jan and Mar is included.`, `The formula text stays the same. Only the set of sheets inside the span changes.`] }
+  ]
+},
+{
+  id: 't8', n: 8, title: `Formula auditing`, sheet: `8 Auditing`,
+  fx: `=IFERROR(VLOOKUP("Tablet", Data!$K$5:$M$9, 3, FALSE), "Not found")`,
+  kw: [`trace precedents`, `trace dependents`, `remove arrows`, `show formulas`, `evaluate formula`, `error checking`, `watch window`, `#DIV/0!`, `#VALUE!`, `#N/A`, `#NAME?`, `#REF!`, `#####`, `circular reference`, `IFERROR`, `precedent`, `dependent`, `green triangle`],
+  intro: `Auditing means checking that a formula uses the cells you think it uses. Excel can draw the connections for you and walk through a calculation one step at a time.`,
+  parts: [
+    { h: `Follow the arrows`,
+      p: [`**Precedents** are the cells a formula reads. **Dependents** are the cells that read it. The tools are on **Formulas > Formula Auditing**.`],
+      fig: { type: 'trace', cap: `Trace Precedents on Net income (B14) draws arrows from Operating income (B12) and Tax rate (B13).` },
+      list: [`**Trace Precedents**: arrows from the cells that feed the selected formula. Click again to go one level further back.`, `**Trace Dependents**: arrows to every formula that uses the selected cell.`, `**Remove Arrows** clears them.`, `**Show Formulas** (Ctrl + \`) displays every formula instead of its result.`, `**Evaluate Formula** calculates one piece at a time so you can see where a result goes wrong.`, `**Watch Window** keeps an eye on a cell while you work on another sheet.`] },
+    { h: `Error values and what they mean`,
+      table: { head: [`You see`, `Cause`, `Typical fix`],
+        rows: [[`#DIV/0!`, `Dividing by zero or an empty cell`, `=IF(H5=0,"n/a",B7/H5)`],
+               [`#VALUE!`, `Maths on text`, `Correct the input, or use N() or VALUE()`],
+               [`#N/A`, `A lookup found no match`, `=IFERROR(VLOOKUP(...),"Not found")`],
+               [`#NAME?`, `Misspelled function or name`, `Fix the spelling, e.g. SUMM to SUM`],
+               [`#REF!`, `A referenced cell was deleted`, `Undo, or rewrite the reference`],
+               [`#####`, `Column too narrow (not a real error)`, `Widen the column`],
+               [`Circular reference`, `A formula refers to its own cell`, `Move the formula or change its range`]] } },
+    { h: `Example: a wrong total with no error value`,
+      p: [`The most dangerous mistakes show no error at all. This total looks fine until you check its range.`],
+      fig: { type: 'grid', name: `B35`, fx: `=SUM(B31:B33)`, cols: `AB`, row: 30,
+        rows: [[`!Expense`, `!Amount`], [`Rent`, `~$1,200`], [`Utilities`, `~$800`], [`Supplies`, `~$450`], [`Insurance`, `~$300`], [`Total`, `^$2,450`], [`Correct total`, `+$2,750`]],
+        cap: `The SUM stops at row 33 and misses Insurance. The total is $300 short.` },
+      steps: [`On **8 Auditing**, click [[B35]].`, `**Formulas > Trace Precedents**. The blue box covers B31:B33 only.`, `Notice the small green triangle in the cell corner: "Formula omits adjacent cells".`, `Fix the formula to [[=SUM(B31:B34)]] and the total becomes $2,750.`],
+      tip: `IFERROR hides every kind of error, including ones you would want to know about. Use it on lookups where "not found" is expected, not as a blanket cover.` }
+  ],
+  quiz: [
+    { q: `A VLOOKUP returns #N/A. What does that tell you?`,
+      o: [`The function name is misspelled`, `The lookup value was not found in the first column of the table`, `A referenced cell was deleted`, `The column is too narrow`],
+      a: 1,
+      why: `#N/A means "not available": an exact-match lookup searched the first column and found nothing equal to the lookup value. Check for typos and extra spaces.`,
+      not: [`A misspelled function shows #NAME?.`, ``, `A deleted reference shows #REF!.`, `A narrow column shows #####.`] },
+    { q: `You want to see every formula that would change if you edited Units sold in B5. Which tool do you use?`,
+      o: [`Trace Precedents`, `Trace Dependents`, `Show Formulas`, `Watch Window`],
+      a: 1,
+      why: `Dependents are the cells that depend on the selected cell. Trace Dependents draws arrows from B5 to each formula that uses it, starting with Revenue.`,
+      not: [`Precedents point the other way: the cells that feed into a formula. B5 is an input, so it has none.`, ``, `Show Formulas displays formula text but draws no connections.`, `Watch Window monitors values of chosen cells. It does not find them for you.`] },
+    { q: `The expenses are $1,200, $800, $450 and $300 in B31:B34, and the total formula is =SUM(B31:B33). What does it show?`,
+      o: [`#REF!`, `$2,750`, `$2,450, with no error value`, `#VALUE!`],
+      a: 2,
+      why: `The formula is valid, so there is no error value. It adds only the first three amounts: 1,200 + 800 + 450 = 2,450. The $300 in B34 is left out. This is why tracing precedents matters.`,
+      not: [`No referenced cell was deleted.`, `$2,750 is the correct total, but the range stops one row early.`, ``, `All the cells hold numbers, so there is no text to cause #VALUE!.`] }
+  ]
+},
+{
+  id: 't9', n: 9, title: `Controlling user input`, sheet: `9 Input Control`,
+  fx: `=AND(LEN(B9)=5, LEFT(B9,1)="C")`,
+  kw: [`data validation`, `dropdown list`, `whole number rule`, `decimal rule`, `date rule`, `custom validation`, `input message`, `error alert`, `Stop`, `Warning`, `Information`, `circle invalid data`, `locked cells`, `protect sheet`, `protect workbook`, `unlock cells`, `form controls`],
+  intro: `A model is only as good as what people type into it. Data validation limits what a cell accepts, and sheet protection stops people overwriting your formulas.`,
+  parts: [
+    { h: `Data validation rules`,
+      p: [`Select the input cells, then **Data > Data Validation**. The Settings tab holds the rule.`],
+      table: { head: [`Cell on the order form`, `Rule`, `Rejected example`],
+        rows: [[`Product`, `List: =Data!$K$5:$K$9`, `Tablet`],
+               [`Quantity`, `Whole number between 1 and 100`, `0, 2.5 or 500`],
+               [`Order date`, `Date on or after DATE(2026,1,1)`, `12/31/2025`],
+               [`Discount`, `Decimal between 0 and 0.2 (Warning)`, `0.5 asks you to confirm`],
+               [`Customer code`, `Custom: =AND(LEN(B9)=5,LEFT(B9,1)="C")`, `X1234 or C12`],
+               [`Rush order?`, `List: Yes,No`, `Maybe`]] } },
+    { h: `Messages and alert styles`,
+      fig: { type: 'dialog', title: `Data Validation`, fields: [[`Allow`, `Whole number`], [`Data`, `between`], [`Minimum`, `1`], [`Maximum`, `100`], [`Error style`, `Stop`], [`Error message`, `Enter a whole number between 1 and 100.`]], cap: `The rule behind the Quantity cell.` },
+      list: [`**Input Message**: a tooltip shown when the cell is selected. Use it to say what is expected.`, `**Stop**: refuses the entry. The only choices are Retry and Cancel.`, `**Warning**: asks "Continue?" and lets the user keep the value.`, `**Information**: shows a note and accepts the value.`, `**Circle Invalid Data** (in the Data Validation menu) marks existing entries that break a rule.`],
+      tip: `Validation only checks typed entries. A value pasted over the cell replaces the rule, so protect the sheet as well.` },
+    { h: `Example: protect everything except the inputs`,
+      p: [`Every cell starts out Locked, but the lock does nothing until the sheet is protected. So unlock the input cells first, then protect.`],
+      fig: { type: 'grid', name: `B13`, fx: `=B6*B12*(1-B8)`, cols: `AB`, row: 5,
+        rows: [[`Product`, `~Laptop`], [`Quantity`, `~3`], [`Order date`, `~Oct 8, 2026`], [`Discount`, `~10%`], [`Customer code`, `~C1234`], [`Rush order?`, `~No`], [``, ``], [`Unit price`, `$900`], [`Order total`, `*$2,430`]],
+        cap: `Yellow cells are unlocked inputs. Unit price and Order total are formulas that stay locked.` },
+      steps: [`Select the six yellow input cells.`, `Press Ctrl+1, open the **Protection** tab and untick **Locked**.`, `**Review > Protect Sheet > OK**. A password is optional.`, `Try to type over [[B13]]. Excel refuses. The yellow cells still accept input.`] }
+  ],
+  quiz: [
+    { q: `What is the difference between a Stop alert and a Warning alert?`,
+      o: [`Stop blocks the entry; Warning lets the user choose to keep it`, `Stop is red and Warning is yellow, but they behave the same`, `Warning blocks the entry; Stop only shows a note`, `Stop works on numbers and Warning works on text`],
+      a: 0,
+      why: `Stop never accepts an invalid value. Warning explains the problem and asks whether to continue, so the user can override it. The Discount cell uses Warning for that reason.`,
+      not: [``, `The icons differ, but so does the behaviour.`, `It is the other way around, and the note-only style is Information.`, `Alert style has nothing to do with data type.`] },
+    { q: `You want users to change the input cells but not the formulas. What is the correct order?`,
+      o: [`Protect the sheet, then unlock the input cells`, `Unlock the input cells, then protect the sheet`, `Lock the formula cells, and that is enough`, `Hide the formula columns`],
+      a: 1,
+      why: `All cells are locked by default, and locking only takes effect under protection. Unlock the inputs first, then switch on Protect Sheet so that everything still locked becomes read-only.`,
+      not: [`Once the sheet is protected you cannot change the Locked setting without unprotecting it.`, ``, `Formula cells are already locked. Without Protect Sheet the lock does nothing.`, `Hidden columns can be unhidden and their cells still edited.`] },
+    { q: `The Customer code rule is =AND(LEN(B9)=5, LEFT(B9,1)="C"). Which entry is accepted?`,
+      o: [`C12`, `X1234`, `C1234`, `C123456`],
+      a: 2,
+      why: `Both tests must be true: exactly five characters, and the first one is C. C1234 has five characters and starts with C.`,
+      not: [`Starts with C but has only three characters.`, `Five characters, but it starts with X.`, ``, `Starts with C but has seven characters.`] }
+  ]
+},
+{
+  id: 't10', n: 10, title: `Financial functions`, sheet: `10 Financial`,
+  fx: `=PMT(B5/12, B6*12, -B4)`,
+  kw: [`PMT`, `IPMT`, `PPMT`, `FV`, `PV`, `NPV`, `IRR`, `RATE`, `NPER`, `SLN`, `amortization schedule`, `time value of money`, `cash flow sign`, `discount rate`, `principal`, `interest`, `annuity`, `depreciation`, `loan payment`],
+  intro: `Excel's financial functions all describe the same picture: money moving in and out over equal periods at an interest rate. Two rules prevent most mistakes.`,
+  parts: [
+    { h: `Two rules before any formula`,
+      list: [`**Match the time units.** For monthly payments, divide the annual rate by 12 and multiply the years by 12.`, `**Watch the sign.** Money you pay out is negative and money you receive is positive. A loan you receive is positive, so its payments come out negative unless you enter the loan as a negative.`],
+      table: { head: [`Function`, `Answers`, `Arguments`],
+        rows: [[`PMT`, `Payment per period`, `rate, nper, pv`],
+               [`IPMT / PPMT`, `Interest / principal part of one payment`, `rate, period, nper, pv`],
+               [`FV`, `Value in the future`, `rate, nper, pmt`],
+               [`PV`, `Value today`, `rate, nper, pmt, fv`],
+               [`NPV`, `Value today of uneven cash flows`, `rate, flows from year 1`],
+               [`IRR`, `Rate at which NPV is zero`, `all flows including year 0`],
+               [`RATE / NPER`, `Solve for the rate or the number of periods`, `the other values`],
+               [`SLN`, `Straight-line depreciation per year`, `cost, salvage, life`]] } },
+    { h: `Example: a $25,000 loan at 6% for 5 years`,
+      fig: { type: 'grid', name: `B9`, fx: `=PMT(B5/B7, B6*B7, -B4)`, cols: `AB`, row: 4,
+        rows: [[`Loan amount`, `~$25,000`], [`Annual interest rate`, `~6.00%`], [`Term (years)`, `~5`], [`Payments per year`, `~12`], [``, ``], [`Monthly payment`, `*$483.32`], [`Total paid`, `$28,999.20`], [`Total interest`, `$3,999.20`], [`Interest in payment 1`, `$125.00`], [`Principal in payment 1`, `$358.32`]],
+        cap: `Rate per period is 6% / 12 = 0.5%. Number of periods is 5 x 12 = 60.` },
+      p: [`The first payment's interest is one month's interest on the full balance: $25,000 x 0.5% = $125. The remaining $358.32 reduces the loan. Each month the interest part shrinks and the principal part grows. The amortization schedule on the sheet shows all 60 payments ending at a balance of $0.`],
+      steps: [`On **10 Financial**, change the rate in [[B5]] to 7%.`, `The payment rises to $495.03. Change it back to 6%.`, `Scroll the schedule: the Ending balance in the last row is $0.00.`] },
+    { h: `Saving, present value and projects`,
+      table: { head: [`Question`, `Formula`, `Answer`],
+        rows: [[`$200 a month for 10 years at 5%: how much will I have?`, `=FV(5%/12, 10*12, -200)`, `$31,056.46`],
+               [`What is $10,000 in 5 years worth today at 5%?`, `=PV(5%, 5, 0, -10000)`, `$7,835.26`],
+               [`Invest $10,000 now; receive 3,000, 4,000, 4,000, 3,000. NPV at 8%?`, `=NPV(8%, B32:B35) + B31`, `$1,587.55`],
+               [`What return does that project earn?`, `=IRR(B31:B35)`, `14.90%`],
+               [`$10,000 asset, $1,000 salvage, 5 years: yearly depreciation?`, `=SLN(10000, 1000, 5)`, `$1,800`]] },
+      tip: `NPV assumes its first value arrives one period from now. Leave the year 0 investment out of the NPV range and add it separately.` }
+  ],
+  quiz: [
+    { q: `Which formula gives the monthly payment on a $25,000 loan at 6% a year for 5 years?`,
+      o: [`=PMT(6%, 5, -25000)`, `=PMT(6%/12, 5*12, -25000)`, `=PMT(6%/12, 5, -25000)`, `=PMT(6%, 5*12, -25000)`],
+      a: 1,
+      why: `Monthly payments need a monthly rate (6%/12 = 0.5%) and the number of months (5 x 12 = 60). The result is $483.32.`,
+      not: [`This is one payment a year for five years: $5,934.91 annually.`, ``, `Monthly rate but only 5 payments. It would repay the loan in five months at about $5,075 each.`, `Sixty periods at 6% per period treats 6% as a monthly rate. The payment would be far too high.`] },
+    { q: `A project costs $10,000 today (in B31) and returns cash in years 1 to 4 (B32:B35). Which formula gives the correct NPV at the rate in B30?`,
+      o: [`=NPV(B30, B31:B35)`, `=NPV(B30, B32:B35) + B31`, `=SUM(B31:B35)`, `=IRR(B31:B35)`],
+      a: 1,
+      why: `NPV discounts its first value by one full period. The investment happens today, so it must not be discounted. Discount years 1 to 4, then add the (negative) year 0 amount: $1,587.55.`,
+      not: [`This discounts the year 0 investment as if it happened a year from now, which understates the result.`, ``, `SUM ignores the time value of money. It returns $4,000.`, `IRR returns a rate (14.90%), not a dollar value.`] },
+    { q: `For the $25,000 loan at 6% with monthly payments, how much of the first payment is interest?`,
+      o: [`$483.32`, `$358.32`, `$125.00`, `$1,500.00`],
+      a: 2,
+      why: `Interest for one month is the balance times the monthly rate: $25,000 x 0.5% = $125. =IPMT(6%/12, 1, 60, -25000) returns the same.`,
+      not: [`That is the whole payment, interest plus principal.`, `That is the principal part: $483.32 - $125.00.`, ``, `That is a full year of interest on the opening balance (25,000 x 6%).`] }
+  ]
+},
+{
+  id: 't11', n: 11, title: `Solver: linear optimization`, sheet: `11 Solver Linear`,
+  fx: `=SUMPRODUCT(B5:C5, B6:C6)`,
+  kw: [`Solver`, `Solver add-in`, `objective cell`, `changing variable cells`, `decision variables`, `constraint`, `Simplex LP`, `linear programming`, `SUMPRODUCT`, `non-negative`, `binding constraint`, `feasible region`, `answer report`, `sensitivity report`, `shadow price`, `product mix`, `integer constraint`],
+  intro: `Solver finds the best values for a set of cells, subject to limits you set. A linear model is one where every formula is a simple weighted sum of the decision cells.`,
+  parts: [
+    { h: `Three ingredients of every Solver model`,
+      list: [`**Objective**: one cell to maximise, minimise or set to a value. Here, total profit.`, `**Changing variable cells**: the decisions Solver may alter. Here, how many tables and chairs to make.`, `**Constraints**: limits that must hold. Here, hours of carpentry and finishing available.`],
+      p2: [`Solver is an add-in. Switch it on once with **File > Options > Add-ins > Manage: Excel Add-ins > Go** and tick **Solver Add-in**. It then appears on the Data tab.`] },
+    { h: `Example: how many tables and chairs?`,
+      p: [`A table earns $50 and a chair $30. A table needs 4 carpentry hours and 2 finishing hours. A chair needs 3 and 1. There are 240 carpentry hours and 100 finishing hours.`],
+      fig: { type: 'grid', name: `B8`, fx: `=SUMPRODUCT(B5:C5, B6:C6)`, cols: `ABCDEF`, row: 4,
+        rows: [[``, `!Tables`, `!Chairs`, ``, ``, ``], [`Units to make`, `~30`, `~40`, ``, ``, ``], [`Profit per unit`, `$50`, `$30`, ``, ``, ``], [``, ``, ``, ``, ``, ``], [`Total profit`, `*$2,700`, ``, ``, ``, ``], [``, ``, ``, ``, ``, ``], [`!Resource`, `!Tables`, `!Chairs`, `!Used`, `!`, `!Available`], [`Carpentry hours`, `4`, `3`, `240`, `<=`, `240`], [`Finishing hours`, `2`, `1`, `100`, `<=`, `100`]],
+        cap: `The model after solving: 30 tables and 40 chairs earn $2,700 and use every available hour.` },
+      fig2: { type: 'region', cap: `Each line is one constraint. The shaded area is every plan that fits both. The best plan is always at a corner, and here it is (30, 40).` },
+      steps: [`**Data > Solver**. Set Objective: [[$B$8]], To: **Max**.`, `By Changing Variable Cells: [[$B$5:$C$5]].`, `Add a constraint: [[$D$11:$D$12 <= $F$11:$F$12]].`, `Tick **Make Unconstrained Variables Non-Negative**.`, `Select a Solving Method: **Simplex LP**. Click **Solve**.`, `Keep the solution. You should see 30, 40 and $2,700.`] },
+    { h: `Reading the result`,
+      list: [`A constraint is **binding** when the amount used equals the amount available. Both are binding here.`, `The **Answer report** lists the final values and which constraints are binding.`, `The **Sensitivity report** gives a shadow price: what one more unit of a resource is worth. Here an extra carpentry hour adds $5 of profit and an extra finishing hour adds $15.`, `To force whole numbers, add a constraint and choose **int**. To force yes/no decisions, choose **bin**.`],
+      tip: `Simplex LP refuses a model that is not linear ("The linearity conditions required by this LP Solver are not satisfied"). That message means a formula multiplies or divides decision cells, or uses IF, MAX or similar.` }
+  ],
+  quiz: [
+    { q: `Profit is $50 per table and $30 per chair, and every constraint is a simple sum of hours. Which solving method fits?`,
+      o: [`GRG Nonlinear`, `Simplex LP`, `Evolutionary`, `Goal Seek`],
+      a: 1,
+      why: `The objective and all constraints are linear (each decision cell is only multiplied by a constant and added). Simplex LP is built for this and guarantees the true optimum.`,
+      not: [`GRG works on smooth nonlinear models. It would find the answer here but without the same guarantee or reports.`, ``, `Evolutionary is a slow last resort for non-smooth models.`, `Goal Seek changes one cell to hit one target and cannot handle constraints.`] },
+    { q: `Making 50 tables and 0 chairs uses all 100 finishing hours. Why is that not the best plan?`,
+      o: [`It breaks the carpentry limit`, `It earns $2,500, which is less than the $2,700 from 30 tables and 40 chairs`, `Solver cannot produce zero of a product`, `Chairs are more profitable per unit than tables`],
+      a: 1,
+      why: `50 tables earn 50 x $50 = $2,500. The mix of 30 tables and 40 chairs earns 30 x $50 + 40 x $30 = $2,700 because it also uses the 40 spare carpentry hours that the all-tables plan leaves idle.`,
+      not: [`It uses 200 of the 240 carpentry hours, so the limit holds.`, ``, `Zero is allowed. Only negative values are ruled out.`, `A chair earns $30 and a table $50, so tables earn more per unit.`] },
+    { q: `In the solved model both hour constraints show Used equal to Available. What are these constraints called?`,
+      o: [`Infeasible`, `Binding`, `Redundant`, `Integer`],
+      a: 1,
+      why: `A binding constraint is used right up to its limit, so it is actively holding the objective back. More of that resource would allow more profit, which is what its shadow price measures.`,
+      not: [`Infeasible means no plan satisfies all constraints.`, ``, `A redundant constraint never limits the answer.`, `Integer describes a constraint that forces whole numbers.`] }
+  ]
+},
+{
+  id: 't12', n: 12, title: `Solver: nonlinear optimization`, sheet: `12 Solver Nonlinear`,
+  fx: `=B4*(B7-B8*B4) - (B6+B5*(B7-B8*B4))`,
+  kw: [`GRG Nonlinear`, `nonlinear model`, `local optimum`, `global optimum`, `Multistart`, `Evolutionary`, `starting value`, `price optimization`, `demand curve`, `smooth function`, `bounds on variables`],
+  intro: `A model is nonlinear when decision cells are multiplied together, squared, divided or passed through functions. The profit line becomes a curve, and Solver has to climb it.`,
+  parts: [
+    { h: `Why this model is nonlinear`,
+      p: [`Demand falls as price rises: demand = 1,200 - 40 x price. Revenue is price x demand, so price is multiplied by something that itself contains price. That gives a price-squared term and a curved profit function.`],
+      fig: { type: 'grid', name: `B13`, fx: `=B11-B12`, cols: `AB`, row: 4,
+        rows: [[`Price (changing cell)`, `~$18.00`], [`Unit cost`, `$6.00`], [`Fixed cost`, `$2,000`], [`Demand at price 0`, `1,200`], [`Units lost per $1 of price`, `40`], [``, ``], [`Demand (units)`, `480`], [`Revenue`, `$8,640`], [`Total cost`, `$4,880`], [`Profit (objective)`, `*$3,760`]],
+        cap: `The model at its best price. Demand = 1,200 - 40 x 18 = 480 units.` } },
+    { h: `Example: find the profit-maximising price`,
+      fig: { type: 'curve', cap: `Profit at each price. Too cheap and the margin is thin; too expensive and nobody buys. The peak is at $18.` },
+      steps: [`On **12 Solver Nonlinear**, the price starts at $10 (profit $1,200).`, `**Data > Solver**. Set Objective: [[$B$13]], To: **Max**.`, `By Changing Variable Cells: [[$B$4]].`, `Add constraints: [[$B$4 >= $B$5]] and [[$B$4 <= 30]].`, `Select a Solving Method: **GRG Nonlinear**. Click **Solve**.`, `You should get a price of $18.00 and a profit of $3,760.`] },
+    { h: `Local and global optimums`,
+      p: [`GRG Nonlinear climbs uphill from wherever the changing cells start and stops at the first peak it reaches. On a single-peak curve like this one, that peak is the best answer. On a bumpy model it might only be a **local optimum**: the best nearby, not the best overall.`],
+      list: [`Try several starting values. If they all end at the same answer, you can be more confident.`, `Tick **Options > GRG Nonlinear > Use Multistart** to make Solver try many starting points for you. Give every variable an upper and lower bound first.`, `Use **Evolutionary** when formulas contain IF, lookups or other jumps that are not smooth. It is slower and gives a good answer, not a guaranteed best one.`],
+      tip: `Solver's message matters. "Solver found a solution" means a local optimum was reached. "Solver has converged to the current solution" means it stopped improving, and you may want to run it again.` }
+  ],
+  quiz: [
+    { q: `Why can't this pricing model be solved with Simplex LP?`,
+      o: [`It has only one changing cell`, `Revenue multiplies price by demand, and demand depends on price`, `It has a fixed cost`, `It uses dollars and units in the same model`],
+      a: 1,
+      why: `Price x (1,200 - 40 x price) contains price squared. A linear model may only multiply decision cells by constants, so this needs GRG Nonlinear.`,
+      not: [`The number of variables does not decide linearity.`, ``, `A fixed cost is a constant and is fine in a linear model.`, `Mixed units are normal in any model.`] },
+    { q: `Unit cost is $6 and demand reaches zero at a price of $30. What price maximises profit?`,
+      o: [`$6`, `$12`, `$18`, `$30`],
+      a: 2,
+      why: `For a straight-line demand curve the best price is halfway between unit cost and the price where demand hits zero: (6 + 30) / 2 = 18. Profit there is 12 x 480 - 2,000 = $3,760.`,
+      not: [`At $6 the margin is zero, so the firm loses its $2,000 fixed cost.`, `$12 earns 6 x 720 - 2,000 = $2,320, which is less than $3,760.`, ``, `At $30 nothing sells, so the loss is the $2,000 fixed cost.`] },
+    { q: `GRG Nonlinear reports a solution on a model with several peaks. What is the risk, and what helps?`,
+      o: [`It may be a local optimum; use Multistart or different starting values`, `The answer is always wrong; switch to Simplex LP`, `There is no risk; GRG always finds the global optimum`, `It ignores constraints; remove them`],
+      a: 0,
+      why: `GRG stops at the first peak it climbs. Multistart, or rerunning from several starting values, checks whether a higher peak exists elsewhere.`,
+      not: [``, `Simplex LP cannot run nonlinear models at all.`, `GRG guarantees only a local optimum.`, `GRG respects constraints. Removing them changes the problem.`] }
+  ]
+},
+{
+  id: 't13', n: 13, title: `One- and two-variable data tables`, sheet: `13 Data Tables`,
+  fx: `{=TABLE(B6, B5)}`,
+  kw: [`data table`, `what-if analysis`, `one-variable data table`, `two-variable data table`, `row input cell`, `column input cell`, `TABLE function`, `sensitivity analysis`, `automatic except data tables`, `input cell`],
+  intro: `A data table reruns one formula for a whole list of input values and lays out the answers side by side. It answers "what if the rate were 4%, 5%, 6%..." in one go.`,
+  parts: [
+    { h: `One-variable table`,
+      p: [`List the input values down a column. One cell above and to the right, point to the formula you want tested. Excel substitutes each value into the input cell and records the result.`],
+      fig: { type: 'grid', name: `B10`, fx: `=B7`, cols: `AB`, row: 10,
+        rows: [[`Rate`, `*$483.32`], [`~4.00%`, `+$460.41`], [`~5.00%`, `+$471.78`], [`~6.00%`, `+$483.32`], [`~7.00%`, `+$495.03`], [`~8.00%`, `+$506.91`]],
+        cap: `Monthly payment on a $25,000, 5-year loan at five interest rates. B10 simply points to the payment formula.` },
+      steps: [`On **13 Data Tables**, select [[A10:B15]] (inputs, formula cell and the empty results).`, `**Data > What-If Analysis > Data Table**.`, `Leave **Row input cell** empty. Set **Column input cell** to [[$B$5]] (the rate in the model).`, `Click OK and compare with the green answer column.`] },
+    { h: `Two-variable table`,
+      p: [`Two inputs change at once: one set runs down the left column and the other runs across the top row. The formula goes in the corner cell where they meet.`],
+      fig: { type: 'grid', name: `A19`, fx: `=B7`, cols: `ABCD`, row: 19,
+        rows: [[`*$483.32`, `~3`, `~4`, `~5`], [`~4.00%`, `+$738.10`, `+$564.48`, `+$460.41`], [`~5.00%`, `+$749.27`, `+$575.73`, `+$471.78`], [`~6.00%`, `+$760.55`, `+$587.13`, `+$483.32`], [`~7.00%`, `+$771.93`, `+$598.66`, `+$495.03`], [`~8.00%`, `+$783.41`, `+$610.32`, `+$506.91`]],
+        cap: `Payment by rate (down) and years (across). A 3-year loan at 6% costs $760.55 a month.` },
+      steps: [`Select [[A19:D24]].`, `**Data > What-If Analysis > Data Table**.`, `**Row input cell**: [[$B$6]], because years run across the top row.`, `**Column input cell**: [[$B$5]], because rates run down the left column. OK.`] },
+    { h: `Things to know`,
+      list: [`The results are one array formula, shown as [[{=TABLE(B6,B5)}]]. You cannot edit or delete a single result cell. Select all the results and press Delete to clear them.`, `Input cells must be on the same sheet as the data table.`, `A one-variable table can test several formulas at once: add more formula cells along the top row.`, `Large tables slow a workbook down. **Formulas > Calculation Options > Automatic Except for Data Tables** recalculates them only when you press F9.`],
+      tip: `Row input cell is for the values laid out across a row. Column input cell is for the values laid out down a column. The names describe the layout of your list, not where the model's input sits.` }
+  ],
+  quiz: [
+    { q: `Your interest rates are listed down A11:A15 and the model's rate is in B5. In the Data Table dialog, what do you enter?`,
+      o: [`Row input cell: B5`, `Column input cell: B5`, `Column input cell: A11`, `Both boxes: B5`],
+      a: 1,
+      why: `The test values run down a column, so they belong in the Column input cell box, and the box must point at the model cell they replace: B5.`,
+      not: [`Row input cell is for values laid out across a row.`, ``, `The box takes the model's input cell, not the first value in your list.`, `Filling both boxes with the same cell describes a two-variable table and gives wrong results.`] },
+    { q: `In a two-variable data table, where does the formula (or a reference to it) go?`,
+      o: [`In every result cell`, `In the top-left corner cell where the row and column of inputs meet`, `In the cell below the table`, `On a separate sheet`],
+      a: 1,
+      why: `The corner cell tells Excel which formula to recalculate for every row and column pair. In the example that is A19, which holds =B7.`,
+      not: [`Excel fills the result cells itself with the TABLE array.`, ``, `Cells outside the selected block are ignored.`, `The table and its input cells must be on the same sheet.`] },
+    { q: `You try to delete one result cell inside a data table and Excel says "Cannot change part of a data table". Why?`,
+      o: [`The sheet is protected`, `The results are a single array, so they can only be changed or cleared together`, `The cell contains a circular reference`, `Data tables are read-only forever`],
+      a: 1,
+      why: `Excel stores all results as one TABLE array. Select the whole results range and press Delete to remove it, or change the inputs and let it recalculate.`,
+      not: [`Protection gives a different message about protected cells.`, ``, `There is no circular reference here.`, `You can clear the full results range whenever you like.`] }
+  ]
+},
+{
+  id: 't14', n: 14, title: `Scenario management`, sheet: `14 Scenarios`,
+  fx: `=B4*(B5-B6) - B7`,
+  kw: [`Scenario Manager`, `scenario`, `changing cells`, `scenario summary`, `result cells`, `Goal Seek`, `break-even`, `best case`, `worst case`, `base case`, `what-if analysis`, `define name`],
+  intro: `A scenario is a named set of input values. Scenario Manager stores several sets, swaps them in and out of the model, and builds a side-by-side summary.`,
+  parts: [
+    { h: `Scenarios against the other what-if tools`,
+      table: { head: [`Tool`, `Use it when`, `Limit`],
+        rows: [[`Data table`, `One or two inputs take many values`, `Two inputs at most`],
+               [`Scenario Manager`, `Several inputs change together as a named case`, `Up to 32 changing cells per scenario`],
+               [`Goal Seek`, `You know the result you want and need the input`, `One input, one target`],
+               [`Solver`, `You want the best result under constraints`, `Needs a well-built model`]] } },
+    { h: `Example: best, base and worst case`,
+      p: [`Profit = units x (price - unit cost) - fixed costs of $15,000. Three inputs change together in each case.`],
+      fig: { type: 'grid', name: `H5`, fx: `=E5*(F5-G5)-$B$7`, cols: `DEFGH`, row: 4,
+        rows: [[`!Scenario`, `!Units`, `!Price`, `!Unit cost`, `!Profit`], [`Best`, `~1,200`, `~$52`, `~$28`, `*+$13,800`], [`Base`, `~1,000`, `~$50`, `~$30`, `+$5,000`], [`Worst`, `~800`, `~$48`, `~$32`, `+($2,200)`]],
+        cap: `Best case: 1,200 x (52 - 28) - 15,000 = $13,800. Worst case is a $2,200 loss.` },
+      steps: [`**Data > What-If Analysis > Scenario Manager > Add**.`, `Scenario name: Best. Changing cells: [[$B$4:$B$6]]. OK.`, `Enter 1200, 52 and 28. Click **Add** and repeat for Base and Worst.`, `Select a scenario and click **Show**. Profit in B11 should match the table above.`, `Click **Summary**, set Result cells to [[$B$11]] and click OK. Excel builds a Scenario Summary sheet.`],
+      tip: `Name the input cells first (Formulas > Define Name). The summary then shows Units, Price and Unit_cost instead of $B$4, $B$5 and $B$6.` },
+    { h: `Goal Seek: work backwards to a target`,
+      p: [`Goal Seek changes one input until a formula reaches the value you ask for. To find the break-even point, ask for a profit of zero.`],
+      fig: { type: 'dialog', title: `Goal Seek`, fields: [[`Set cell`, `$B$11`], [`To value`, `0`], [`By changing cell`, `$B$4`]], cap: `With the Base case showing, Goal Seek returns 750 units.` },
+      p2: [`Check: each unit contributes $50 - $30 = $20. Covering $15,000 of fixed costs takes 15,000 / 20 = 750 units.`] }
+  ],
+  quiz: [
+    { q: `You want to store three named cases, each changing units, price and unit cost together, and compare the profit of each. Which tool fits best?`,
+      o: [`A two-variable data table`, `Scenario Manager`, `Goal Seek`, `AutoFilter`],
+      a: 1,
+      why: `Scenario Manager saves named sets of several changing cells and can produce a summary report comparing a result cell across all of them.`,
+      not: [`A data table handles two inputs at most, and here three change at once.`, ``, `Goal Seek finds one input for one target. It stores no cases.`, `AutoFilter hides rows in a list. It is not a what-if tool.`] },
+    { q: `In the Base case (price $50, unit cost $30, fixed costs $15,000), how many units break even?`,
+      o: [`300`, `500`, `750`, `1,000`],
+      a: 2,
+      why: `Each unit contributes $50 - $30 = $20 toward fixed costs. $15,000 / $20 = 750 units. Goal Seek reaches the same number by setting profit to 0 and changing units.`,
+      not: [`300 is 15,000 / 50, which forgets the unit cost.`, `500 is 15,000 / 30, which divides by cost instead of the $20 margin.`, ``, `1,000 units is the Base case itself and earns a $5,000 profit.`] },
+    { q: `What is the Worst case profit: 800 units, price $48, unit cost $32, fixed costs $15,000?`,
+      o: [`$12,800`, `$2,200`, `-$2,200`, `-$15,000`],
+      a: 2,
+      why: `Margin per unit is 48 - 32 = $16. 800 x 16 = $12,800 of contribution, minus $15,000 fixed costs, leaves a loss of $2,200.`,
+      not: [`$12,800 is the contribution before fixed costs are subtracted.`, `The size is right but the sign is wrong. Costs exceed contribution.`, ``, `-$15,000 would be the result of selling nothing.`] }
+  ]
+},
+{
+  id: 't15', n: 15, title: `Excel macros`, sheet: `15 Macros`,
+  fx: `Sub FormatHeader() ... End Sub`,
+  kw: [`macro`, `record macro`, `VBA`, `Visual Basic editor`, `Developer tab`, `.xlsm`, `macro-enabled workbook`, `relative references`, `absolute recording`, `Sub procedure`, `module`, `For Each loop`, `shortcut key`, `macro security`, `Trust Center`, `Personal Macro Workbook`, `assign macro to button`, `Alt+F11`],
+  intro: `A macro is a recorded or written set of steps that Excel replays on demand. Recording gets you started; reading the VBA it produces lets you improve it.`,
+  parts: [
+    { h: `Before you record`,
+      list: [`**Show the Developer tab**: File > Options > Customize Ribbon, tick Developer.`, `**Save as .xlsm**: File > Save As > Excel Macro-Enabled Workbook. A normal .xlsx file throws macros away when saved.`, `**Plan the steps**: the recorder captures everything, including mistakes and scrolling.`, `**Security**: macros can run any code. Excel disables them in files from the internet until you choose to trust the file. Only enable macros from sources you trust.`],
+      fig: { type: 'dialog', title: `Record Macro`, fields: [[`Macro name`, `FormatHeader`], [`Shortcut key`, `Ctrl+Shift+H`], [`Store macro in`, `This Workbook`], [`Description`, `Bold, green fill, centred`]], cap: `Macro names cannot contain spaces. Start with a letter.` } },
+    { h: `Example: record, replay, read`,
+      steps: [`Select the header cells. **Developer > Record Macro**, fill in the box as shown, OK.`, `Make the cells bold, fill them green, centre them.`, `**Developer > Stop Recording**.`, `Select different cells and press Ctrl+Shift+H. The formatting is applied again.`, `**Developer > Macros > FormatHeader > Edit** opens the Visual Basic editor (Alt+F11).`],
+      code: `Sub FormatHeader()
+    ' Formats whatever cells are selected
+    With Selection
+        .Font.Bold = True
+        .Font.Color = vbWhite
+        .Interior.Color = RGB(33, 115, 70)
+        .HorizontalAlignment = xlCenter
+    End With
+End Sub`,
+      p: [`Every macro is a **Sub** procedure: it starts with Sub and a name, and ends with End Sub. Lines starting with an apostrophe are comments. This version acts on **Selection**, so it formats whichever cells are selected when it runs.`],
+      tip: `Absolute recording (the default) replays on the exact cells you used. Switch on **Use Relative References** before recording to make the macro work from wherever the active cell is.` },
+    { h: `A loop the recorder cannot write`,
+      p: [`Recording cannot make decisions. A few typed lines can. This macro checks five revenue cells and colours those above $2,000.`],
+      code: `Sub HighlightBigOrders()
+    Dim c As Range
+    For Each c In Worksheets("15 Macros").Range("D5:D9")
+        If c.Value > 2000 Then c.Interior.Color = vbYellow
+    Next c
+End Sub`,
+      fig: { type: 'grid', name: `D5`, fx: `=Data!H5`, cols: `CD`, row: 4,
+        rows: [[`!Order`, `!Revenue`], [`1`, `~$3,600`], [`2`, `~$2,500`], [`3`, `$1,000`], [`4`, `$1,000`], [`5`, `$1,800`]],
+        cap: `After running: only the two orders above $2,000 are coloured.` },
+      list: [`[[For Each ... Next]] repeats the indented line once for every cell in the range.`, `[[If ... Then]] runs its action only when the test is true.`, `Paste code into a module: Alt+F11 > Insert > Module. Run with F5 or Developer > Macros.`, `To give users a button: Developer > Insert > Button (Form Control), draw it and pick the macro.`, `Macros stored in the **Personal Macro Workbook** are available in every workbook on your computer.`] }
+  ],
+  quiz: [
+    { q: `You record a macro, save the workbook as Budget.xlsx and reopen it. The macro is gone. Why?`,
+      o: [`Macros expire after one session`, `The .xlsx format cannot store macros; it must be saved as .xlsm`, `The Developer tab was hidden`, `The shortcut key was already in use`],
+      a: 1,
+      why: `An .xlsx workbook cannot contain VBA code, so Excel removes it when saving (after a warning). Save as Excel Macro-Enabled Workbook (.xlsm) to keep macros.`,
+      not: [`Macros stay in the file permanently when the file type allows them.`, ``, `Hiding the tab does not delete code.`, `A shortcut clash affects which macro runs, not whether the code is saved.`] },
+    { q: `Your recorded macro always formats A1:D1, even when you select other cells first. What should you have done?`,
+      o: [`Recorded it twice`, `Turned on Use Relative References before recording`, `Saved it in the Personal Macro Workbook`, `Assigned it to a button`],
+      a: 1,
+      why: `By default the recorder stores exact cell addresses. With Use Relative References on, it stores movements relative to the active cell, so the macro works wherever you start.`,
+      not: [`Recording again in the same mode gives the same fixed addresses.`, ``, `That changes where the macro is available, not which cells it acts on.`, `A button is only another way to start the same macro.`] },
+    { q: `D5:D9 holds $3,600, $2,500, $1,000, $1,000 and $1,800. After HighlightBigOrders runs, which cells are yellow?`,
+      o: [`All five`, `D5 and D6`, `D7, D8 and D9`, `Only D5`],
+      a: 1,
+      why: `The loop visits each cell and colours it only if its value is greater than 2,000. $3,600 and $2,500 pass the test; the other three do not.`,
+      not: [`The If test filters out values of 2,000 or less.`, ``, `Those are the cells that fail the test.`, `D6 holds $2,500, which is also greater than 2,000.`] }
+  ]
+}
+];
+
+const FAQ = [
+  { q: `How do I use this guide with the Excel workbook?`, t: null, a: `Open Advanced_Excel_Practice_Workbook.xlsx beside the guide. Each topic names its matching sheet tab, and the numbers in the pictures are the numbers in the workbook. Yellow cells are inputs you can change, bright yellow areas are parts you build, and green cells are answer checks.` },
+  { q: `When should I use a combo chart?`, t: 't1', a: `When two series have very different scales, such as revenue in thousands and units under 110. Put one series on a secondary axis so both are readable.` },
+  { q: `Why does my date calculation show a date in 1900?`, t: 't2', a: `The result is a number of days and the cell picked up a date format. Change the format to General or Number. For example, 266 days shows as 9/22/1900 until you reformat it.` },
+  { q: `What is the difference between EDATE and EOMONTH?`, t: 't2', a: `EDATE keeps the same day number and moves by whole months: EDATE(Jan 15, 3) is Apr 15. EOMONTH returns the last day of the month: EOMONTH(Jan 15, 0) is Jan 31.` },
+  { q: `Why didn't my PivotTable update when I changed the data?`, t: 't3', a: `A PivotTable works from a stored copy of the data. Use PivotTable Analyze > Refresh after any change to the source.` },
+  { q: `What is a structured reference?`, t: 't4', a: `A formula reference that uses Table and column names, such as =SUM(SalesData[Revenue]). It expands automatically when rows are added to the Table.` },
+  { q: `How do I import a CSV so that it can be refreshed?`, t: 't4', a: `Use Data > Get Data > From File > From Text/CSV and click Load. That creates a query linked to the file. Data > Refresh All reloads it later.` },
+  { q: `How do AND and OR work in an Advanced Filter?`, t: 't5', a: `Conditions typed on the same row of the criteria range are joined with AND. Conditions on separate rows are joined with OR.` },
+  { q: `Should I use VLOOKUP, INDEX/MATCH or XLOOKUP?`, t: 't6', a: `VLOOKUP is fine when the value you want is to the right of the lookup column. INDEX/MATCH works in any direction and survives inserted columns. XLOOKUP does both more simply but needs Excel 2021 or Microsoft 365.` },
+  { q: `What does the TRUE or FALSE at the end of VLOOKUP do?`, t: 't6', a: `FALSE demands an exact match and returns #N/A if there is none. TRUE finds the last row that does not exceed the lookup value, which is what tiered rate tables need. The first column must be sorted ascending for TRUE.` },
+  { q: `What is a 3-D reference?`, t: 't7', a: `A reference to the same cell across a run of sheets, such as =SUM(Jan:Mar!B5). It includes the two named sheets and every sheet between them.` },
+  { q: `How do I find out which cells a formula uses?`, t: 't8', a: `Select the formula and use Formulas > Trace Precedents. Blue arrows point from the cells it reads. Evaluate Formula steps through the calculation.` },
+  { q: `What do the error values mean?`, t: 't8', a: `#DIV/0! is division by zero. #VALUE! is maths on text. #N/A is a lookup with no match. #NAME? is a misspelled function or name. #REF! is a deleted reference. ##### only means the column is too narrow.` },
+  { q: `How do I make a dropdown list in a cell?`, t: 't9', a: `Select the cell, choose Data > Data Validation, set Allow to List, and either type the items separated by commas or point Source at a range.` },
+  { q: `How do I stop people overwriting my formulas?`, t: 't9', a: `Unlock the input cells (Ctrl+1 > Protection > untick Locked), then use Review > Protect Sheet. Everything still locked becomes read-only.` },
+  { q: `Why is my PMT result negative?`, t: 't10', a: `Excel treats money you pay as negative. Enter the loan amount as a negative (or put a minus sign before PMT) to show the payment as a positive number.` },
+  { q: `Why do I add year 0 separately in an NPV formula?`, t: 't10', a: `NPV assumes its first value arrives one period from now. The initial investment happens today, so it is added outside the function: =NPV(rate, year 1 to n) + year 0.` },
+  { q: `I can't find Solver on the Data tab. Where is it?`, t: 't11', a: `Solver is an add-in. Go to File > Options > Add-ins, choose Excel Add-ins beside Manage, click Go and tick Solver Add-in.` },
+  { q: `Which Solver method should I choose?`, t: 't12', a: `Simplex LP for linear models. GRG Nonlinear for smooth nonlinear models, such as price times demand. Evolutionary for models with IF, lookups or other jumps.` },
+  { q: `What is the difference between a row input cell and a column input cell?`, t: 't13', a: `Use Column input cell when your test values run down a column, and Row input cell when they run across a row. In both cases the box points to the model cell that the values replace.` },
+  { q: `When do I use Scenario Manager instead of a data table or Goal Seek?`, t: 't14', a: `Use a data table to vary one or two inputs over many values. Use Scenario Manager when several inputs change together as named cases. Use Goal Seek when you know the result you want and need the one input that produces it.` },
+  { q: `Why did my macro disappear after saving?`, t: 't15', a: `The file was saved as .xlsx, which cannot hold macros. Use File > Save As > Excel Macro-Enabled Workbook (.xlsm).` },
+  { q: `Is it safe to enable macros?`, t: 't15', a: `Only in files from a source you trust. A macro can run any code on your computer. Excel disables macros in downloaded files until you choose to trust them.` }
+];
+
+</script>
+<script>
+(function () {
+'use strict';
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const fmt = s => esc(s).replace(/\[\[(.+?)\]\]/g, '<code>$1</code>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+const plain = s => String(s).replace(/\[\[(.+?)\]\]/g, '$1').replace(/\*\*(.+?)\*\*/g, '$1');
+const byId = id => TOPICS.find(t => t.id === id);
+
+/* ---------- saved state (per browser, optional) ---------- */
+const store = { quiz: {}, rate: 1, voice: '' };
+try { Object.assign(store, JSON.parse(localStorage.getItem('xlguide') || '{}')); } catch (e) { /* storage unavailable */ }
+const save = () => { try { localStorage.setItem('xlguide', JSON.stringify(store)); } catch (e) { /* ignore */ } };
+const answers = t => store.quiz[t.id] || (store.quiz[t.id] = []);
+const scoreOf = t => t.quiz.reduce((n, q, i) => n + (answers(t)[i] === q.a ? 1 : 0), 0);
+const doneCount = t => t.quiz.filter((q, i) => answers(t)[i] != null).length;
+
+/* ---------- figures ---------- */
+function gridFig(f) {
+  const marks = { '!': 'h', '~': 'in', '*': 'sel', '+': 'ok', '^': 'err' };
+  const cols = f.cols.split('');
+  let h = '<tr><th></th>' + cols.map(c => `<th>${c}</th>`).join('') + '</tr>';
+  f.rows.forEach((r, i) => {
+    h += `<tr><th>${f.row + i}</th>` + r.map(v => {
+      let cls = [];
+      while (v && marks[v[0]]) { cls.push(marks[v[0]]); v = v.slice(1); }
+      if (/^\(?-?\$?[\d,]+(\.\d+)?%?\)?$/.test(v.trim()) && !cls.includes('h')) cls.push('num');
+      return `<td class="${cls.join(' ')}">${esc(v)}</td>`;
+    }).join('') + '</tr>';
+  });
+  return `<div class="xl"><div class="fbar"><span class="nb">${esc(f.name)}</span><span class="fxi">fx</span><span class="f">${esc(f.fx)}</span></div><div class="scroll"><table>${h}</table></div></div>`;
+}
+function chartFig(f) {
+  const W = 560, H = f.line ? 304 : 290, l = 58, r = f.line ? 50 : 18, t = f.line ? 54 : 40, b = 36, pw = W - l - r, ph = H - t - b;
+  const y = v => t + ph - v / f.max * ph, n = f.labels.length, bw = pw / n;
+  const bars = f.bars || f.values;
+  let s = `<text class="ttl" x="${l}" y="22">${esc(f.title)}</text>`;
+  for (let v = 0; v <= f.max; v += f.step) {
+    s += `<line class="grid" x1="${l}" x2="${W - r}" y1="${y(v)}" y2="${y(v)}"/><text x="${l - 8}" y="${y(v) + 4}" text-anchor="end">$${v.toLocaleString('en-US')}</text>`;
+  }
+  bars.forEach((v, i) => {
+    const x = l + i * bw + bw * 0.22, w = bw * 0.56;
+    s += `<rect class="bar" x="${x}" y="${y(v)}" width="${w}" height="${t + ph - y(v)}" rx="2"/>`;
+    s += `<text x="${x + w / 2}" y="${H - 14}" text-anchor="middle">${esc(f.labels[i])}</text>`;
+    if (!f.line) s += `<text class="val" x="${x + w / 2}" y="${y(v) - 6}" text-anchor="middle">$${v.toLocaleString('en-US')}</text>`;
+  });
+  if (f.line) {
+    const y2 = v => t + ph - v / f.max2 * ph;
+    for (let v = 0; v <= f.max2; v += f.step2) s += `<text class="blue" x="${W - r + 8}" y="${y2(v) + 4}">${v}</text>`;
+    const pts = f.line.map((v, i) => [l + i * bw + bw / 2, y2(v)]);
+    s += `<polyline class="ln" points="${pts.map(p => p.join(',')).join(' ')}"/>`;
+    pts.forEach((p, i) => { s += `<circle class="dot" cx="${p[0]}" cy="${p[1]}" r="4"/><text class="blue val" x="${p[0]}" y="${p[1] - 9}" text-anchor="middle">${f.line[i]}</text>`; });
+    s += `<text x="${l}" y="${t - 6}">Revenue ($)</text><text class="blue" x="${W - r + 8}" y="${t - 6}" text-anchor="start">Units</text>`;
+  }
+  s += `<line class="axis" x1="${l}" x2="${W - r}" y1="${t + ph}" y2="${t + ph}"/>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(f.title)}">${s}</svg>`;
+}
+function regionFig() {
+  const W = 480, H = 360, l = 52, b = 44, t = 26, r = 24, pw = W - l - r, ph = H - t - b;
+  const X = v => l + v / 70 * pw, Y = v => t + ph - v / 110 * ph, P = (a, c) => `${X(a)},${Y(c)}`;
+  let s = `<polygon class="area" points="${P(0, 0)} ${P(50, 0)} ${P(30, 40)} ${P(0, 80)}"/>`;
+  for (let v = 0; v <= 60; v += 10) s += `<text x="${X(v)}" y="${H - b + 18}" text-anchor="middle">${v}</text>`;
+  for (let v = 0; v <= 100; v += 20) s += `<text x="${l - 8}" y="${Y(v) + 4}" text-anchor="end">${v}</text>`;
+  s += `<line class="axis" x1="${l}" y1="${Y(0)}" x2="${W - r}" y2="${Y(0)}"/><line class="axis" x1="${l}" y1="${t}" x2="${l}" y2="${Y(0)}"/>`;
+  s += `<line class="ln" x1="${X(0)}" y1="${Y(80)}" x2="${X(60)}" y2="${Y(0)}"/><line class="ln2" x1="${X(0)}" y1="${Y(100)}" x2="${X(50)}" y2="${Y(0)}"/>`;
+  s += `<text class="blue" x="${X(9)}" y="${Y(72)}">Carpentry: 4T + 3C = 240</text><text class="red" x="${X(13)}" y="${Y(90)}">Finishing: 2T + C = 100</text>`;
+  [[0, 80, '$2,400', 8, -8], [50, 0, '$2,500', 6, -10], [0, 0, '$0', 8, -8]].forEach(c => { s += `<circle class="box" cx="${X(c[0])}" cy="${Y(c[1])}" r="5"/><text x="${X(c[0]) + c[3]}" y="${Y(c[1]) + c[4]}">${c[2]}</text>`; });
+  s += `<circle class="pk" cx="${X(30)}" cy="${Y(40)}" r="7"/><text class="val" x="${X(30) + 12}" y="${Y(40) + 2}">(30, 40) profit $2,700</text>`;
+  s += `<text x="${X(35)}" y="${H - 6}" text-anchor="middle">Tables (T)</text><text x="14" y="${t - 8}">Chairs (C)</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Feasible region for the tables and chairs model">${s}</svg>`;
+}
+function curveFig() {
+  const W = 560, H = 300, l = 62, r = 20, t = 30, b = 42, pw = W - l - r, ph = H - t - b;
+  const X = p => l + (p - 6) / 24 * pw, Y = v => t + ph - (v + 2000) / 6000 * ph;
+  const prof = p => (p - 6) * (1200 - 40 * p) - 2000;
+  let s = '';
+  for (let v = -2000; v <= 4000; v += 2000) s += `<line class="grid" x1="${l}" x2="${W - r}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${l - 8}" y="${Y(v) + 4}" text-anchor="end">${v < 0 ? '-' : ''}$${Math.abs(v).toLocaleString('en-US')}</text>`;
+  for (let p = 6; p <= 30; p += 4) s += `<text x="${X(p)}" y="${H - b + 18}" text-anchor="middle">$${p}</text>`;
+  let pts = []; for (let p = 6; p <= 30; p += 0.5) pts.push(X(p) + ',' + Y(prof(p)));
+  s += `<line class="axis" x1="${l}" x2="${W - r}" y1="${Y(0)}" y2="${Y(0)}"/><polyline class="ln" points="${pts.join(' ')}"/>`;
+  s += `<line class="grid" stroke-dasharray="4 4" x1="${X(18)}" x2="${X(18)}" y1="${Y(3760)}" y2="${Y(-2000)}"/>`;
+  s += `<circle class="pk" cx="${X(18)}" cy="${Y(3760)}" r="7"/><text class="val" x="${X(18)}" y="${Y(3760) - 12}" text-anchor="middle">Price $18, profit $3,760</text>`;
+  s += `<circle class="box" cx="${X(10)}" cy="${Y(1200)}" r="5"/><text x="${X(10) + 9}" y="${Y(1200) + 14}">Start: $10, profit $1,200</text>`;
+  s += `<text x="${l + pw / 2}" y="${H - 6}" text-anchor="middle">Price</text><text x="14" y="${t - 10}">Profit</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Profit curve by price">${s}</svg>`;
+}
+function traceFig() {
+  const box = (x, y, ref, label, val, cls) => `<rect class="${cls}" x="${x}" y="${y}" width="210" height="46" rx="4"/><text x="${x + 10}" y="${y + 18}">${ref}  ${label}</text><text class="val" x="${x + 10}" y="${y + 36}">${val}</text>`;
+  let s = `<defs><marker id="ah" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path class="ah" d="M0,0 L9,4.5 L0,9 Z"/></marker></defs>`;
+  s += box(20, 20, 'B12', 'Operating income', '$1,500', 'box') + box(20, 96, 'B13', 'Tax rate', '25%', 'box') + box(320, 58, 'B14', 'Net income', '=B12*(1-B13)  →  $1,125', 'boxsel');
+  s += `<circle class="dot" cx="230" cy="43" r="4"/><circle class="dot" cx="230" cy="119" r="4"/>`;
+  s += `<path class="arrow" marker-end="url(#ah)" d="M230,43 L318,74"/><path class="arrow" marker-end="url(#ah)" d="M230,119 L318,90"/>`;
+  return `<svg class="chart" viewBox="0 0 550 162" role="img" aria-label="Trace precedents arrows pointing into cell B14">${s}</svg>`;
+}
+function fig(f) {
+  if (!f) return '';
+  let h = '';
+  if (f.type === 'grid') h = gridFig(f);
+  else if (f.type === 'bars' || f.type === 'combo') h = chartFig(f);
+  else if (f.type === 'region') h = regionFig();
+  else if (f.type === 'curve') h = curveFig();
+  else if (f.type === 'trace') h = traceFig();
+  else if (f.type === 'dialog') h = `<div class="dialog"><div class="bar">${esc(f.title)}</div><dl>${f.fields.map(x => `<dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd>`).join('')}</dl></div>`;
+  else if (f.type === 'path') h = `<div class="path">${f.items.map(x => `<span>${esc(x)}</span>`).join('<i>&#9656;</i>')}</div>`;
+  else if (f.type === 'tabs') h = `<div class="tabsfig">${f.tabs.map((n, i) => `<div class="sheet"><b>${esc(f.vals[i])}</b><small>${esc(n)}!B5</small></div>`).join('<span class="op">+</span>')}<span class="op">=</span><div class="sheet total"><b>${esc(f.total)}</b><small>Q1 total</small></div></div>`;
+  return `<figure>${h}<figcaption class="say">${fmt(f.cap)}</figcaption></figure>`;
+}
+
+/* ---------- topic page ---------- */
+function partHtml(p, i) {
+  let h = `<section class="part" id="p${i}"><h2><span class="say">${esc(p.h)}</span></h2>`;
+  (p.p || []).forEach(x => h += `<p class="say">${fmt(x)}</p>`);
+  if (p.table) {
+    h += `<div class="scroll say" data-say="The table on screen covers: ${esc(p.table.rows.map(r => plain(r[0])).join('; '))}."><table class="plain"><thead><tr>${p.table.head.map(x => `<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>` +
+      p.table.rows.map(r => `<tr>${r.map(c => `<td class="${/^[={']|^Sub /.test(c) ? 'f' : ''}">${esc(c)}</td>`).join('')}</tr>`).join('') + `</tbody></table></div>`;
+  }
+  const steps = p.steps ? `<div class="label">Follow along</div><ol class="steps">${p.steps.map((x, k) => `<li class="say" data-say="Step ${k + 1}. ${esc(plain(x))}"><span>${fmt(x)}</span></li>`).join('')}</ol>` : '';
+  const code = p.code ? `<pre class="code say" data-say="The V B A code is shown on screen.">${esc(p.code)}</pre>` : '';
+  h += p.code ? steps + code + fig(p.fig) : fig(p.fig) + fig(p.fig2) + steps;
+  (p.p2 || []).forEach(x => h += `<p class="say">${fmt(x)}</p>`);
+  if (p.list) h += `<ul>${p.list.map(x => `<li class="say">${fmt(x)}</li>`).join('')}</ul>`;
+  if (p.tip) h += `<p class="tip say"><b>Tip</b>${fmt(p.tip)}</p>`;
+  return h + '</section>';
+}
+function quizHtml(t) {
+  const ans = answers(t), L = 'ABCD';
+  let h = `<section class="quiz" id="quiz"><h2>Test your understanding</h2>`;
+  t.quiz.forEach((q, i) => {
+    const pick = ans[i], done = pick != null;
+    h += `<div class="qcard"><p class="qq">${i + 1}. ${fmt(q.q)}</p><div class="opts">`;
+    q.o.forEach((o, k) => {
+      const cls = done ? (k === q.a ? ' right' : (k === pick ? ' wrong' : '')) : '';
+      const tag = done ? (k === q.a ? 'Correct answer' : (k === pick ? 'Your answer' : '')) : '';
+      h += `<button type="button" class="opt${cls}" data-q="${i}" data-o="${k}" ${done ? 'disabled' : ''}><span class="k">${L[k]}</span><span>${fmt(o)}</span><span class="tag">${tag}</span></button>`;
+    });
+    h += '</div>';
+    if (done) {
+      const ok = pick === q.a;
+      h += `<div class="explain${ok ? '' : ' miss'}" id="ex${i}"><p><strong>${ok ? 'Correct.' : 'Not quite.'}</strong> ${ok ? '' : fmt(q.not[pick]) + ' '}</p>` +
+        `<p><strong>Why ${L[q.a]} is right:</strong> ${fmt(q.why)}</p>` +
+        `<details><summary>Why the other options are wrong</summary><ul>${q.o.map((o, k) => k === q.a ? '' : `<li><strong>${L[k]}.</strong> ${fmt(q.not[k])}</li>`).join('')}</ul></details>` +
+        `<div><button type="button" class="btn ghost small" data-speak="ex${i}">Listen to this explanation</button></div></div>`;
+    }
+    h += '</div>';
+  });
+  const d = doneCount(t);
+  h += `<div class="score"><span>${d === t.quiz.length ? `Score: ${scoreOf(t)} of ${t.quiz.length}` : `${d} of ${t.quiz.length} answered`}</span>${d ? '<button type="button" class="btn ghost small" id="retry">Clear answers and try again</button>' : ''}</div></section>`;
+  return h;
+}
+function topicPage(t) {
+  const i = TOPICS.indexOf(t), prev = TOPICS[i - 1], next = TOPICS[i + 1];
+  return `<header class="thead">
+    <div class="eyebrow">Topic ${t.n} of ${TOPICS.length} &middot; Workbook sheet: ${esc(t.sheet)}</div>
+    <h1>${esc(t.title)}</h1>
+    <div class="fbar" title="A formula from this topic"><span class="nb">${esc(t.sheet.split(' ')[0])}</span><span class="fxi">fx</span><span class="f">${esc(t.fx)}</span></div>
+    <p class="lead say">${fmt(t.intro)}</p>
+    ${playerHtml()}
+    <div class="chips" aria-label="Keywords">${t.kw.map(k => `<button type="button" class="chip" data-kw="${esc(k)}">${esc(k)}</button>`).join('')}</div>
+    <div class="legend"><span><i style="background:var(--input-bg)"></i>Input you can change</span><span><i style="background:var(--check-bg)"></i>Answer check</span><span><i style="outline:2px solid var(--accent);outline-offset:-2px"></i>Selected cell (formula shown in the bar)</span></div>
+  </header>` + t.parts.map(partHtml).join('') + quizHtml(t) +
+  `<nav class="pager">${prev ? `<button type="button" class="btn ghost" data-go="${prev.id}">&larr; ${prev.n}. ${esc(prev.title)}</button>` : '<span></span>'}${next ? `<button type="button" class="btn" data-go="${next.id}">${next.n}. ${esc(next.title)} &rarr;</button>` : `<button type="button" class="btn" data-go="ask">Ask a question &rarr;</button>`}</nav>`;
+}
+
+/* ---------- audio (browser speech synthesis) ---------- */
+const synth = ('speechSynthesis' in window && 'SpeechSynthesisUtterance' in window) ? window.speechSynthesis : null;
+const audio = { queue: [], i: 0, token: 0, playing: false, paused: false, voices: [] };
+function playerHtml() {
+  if (!synth) return `<p class="note">Audio narration needs a browser with speech support. It is not available in this view.</p>`;
+  return `<div class="player" id="player"><button type="button" class="btn" id="play">&#9654; Listen</button><button type="button" class="btn ghost" id="stop" disabled>Stop</button>
+    <span class="now" id="now" aria-live="polite">Narration reads this topic aloud and highlights each part.</span>
+    <label class="note" for="rate">Speed</label><select id="rate">${[0.8, 1, 1.2, 1.5].map(r => `<option value="${r}" ${+store.rate === r ? 'selected' : ''}>${r}x</option>`).join('')}</select>
+    <label class="note" for="voice">Voice</label><select id="voice"><option value="">Default</option></select></div>`;
+}
+function loadVoices() {
+  if (!synth) return;
+  audio.voices = synth.getVoices().filter(v => /^en/i.test(v.lang));
+  const sel = $('#voice'); if (!sel) return;
+  sel.innerHTML = '<option value="">Default</option>' + audio.voices.map(v => `<option value="${esc(v.name)}" ${v.name === store.voice ? 'selected' : ''}>${esc(v.name.replace(/Microsoft |Google /, ''))}</option>`).join('');
+}
+if (synth) { try { synth.addEventListener('voiceschanged', loadVoices); } catch (e) { /* older browsers */ } }
+function chunks(text) {
+  let parts; try { parts = text.split(new RegExp('(?<=[.!?])\\s+')); } catch (e) { parts = [text]; }
+  const out = []; let cur = '';
+  parts.forEach(s => { if ((cur + ' ' + s).length > 220 && cur) { out.push(cur); cur = s; } else cur = cur ? cur + ' ' + s : s; });
+  if (cur) out.push(cur);
+  return out;
+}
+function sayText(el) {
+  return (el.dataset.say || el.textContent).replace(/\s+/g, ' ').replace(/>=/g, ' at least ').replace(/<=/g, ' at most ').replace(/ > /g, ', then ').replace(/[▸→←]/g, ' ').trim();
+}
+function stopAudio() {
+  audio.token++; audio.playing = false; audio.paused = false;
+  if (synth) synth.cancel();
+  $$('.reading').forEach(e => e.classList.remove('reading'));
+  const p = $('#play'), s = $('#stop'), n = $('#now');
+  if (p) p.innerHTML = '&#9654; Listen'; if (s) s.disabled = true; if (n) n.textContent = 'Narration stopped.';
+}
+function speakEls(els, label) {
+  if (!synth) return;
+  stopAudio();
+  audio.queue = [];
+  els.forEach(el => chunks(sayText(el)).forEach(c => audio.queue.push({ el, text: c })));
+  if (!audio.queue.length) return;
+  audio.i = 0; audio.playing = true; audio.label = label || '';
+  const p = $('#play'), s = $('#stop');
+  if (p) p.innerHTML = '&#10074;&#10074; Pause'; if (s) s.disabled = false;
+  next(audio.token);
+}
+function next(token) {
+  if (token !== audio.token) return;
+  $$('.reading').forEach(e => e.classList.remove('reading'));
+  const item = audio.queue[audio.i];
+  if (!item) { stopAudio(); const n = $('#now'); if (n) n.textContent = 'Finished.'; return; }
+  item.el.classList.add('reading');
+  if (audio.i === 0 || audio.queue[audio.i - 1].el !== item.el) { try { item.el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { /* ignore */ } }
+  const sec = item.el.closest('.part'), n = $('#now');
+  if (n) n.textContent = 'Reading: ' + (audio.label || (sec ? $('h2', sec).textContent : 'Introduction'));
+  const u = new SpeechSynthesisUtterance(item.text);
+  u.rate = +store.rate || 1; u.lang = 'en-US';
+  const v = audio.voices.find(x => x.name === store.voice); if (v) { u.voice = v; u.lang = v.lang; }
+  u.onend = () => { if (token === audio.token) { audio.i++; next(token); } };
+  u.onerror = e => { if (token === audio.token && e.error !== 'interrupted' && e.error !== 'canceled') { audio.i++; next(token); } };
+  synth.speak(u);
+}
+function togglePlay() {
+  if (!audio.playing) return speakEls($$('#page .thead .say, #page .part .say'));
+  if (audio.paused) { synth.resume(); audio.paused = false; $('#play').innerHTML = '&#10074;&#10074; Pause'; }
+  else { synth.pause(); audio.paused = true; $('#play').innerHTML = '&#9654; Resume'; }
+}
+
+/* ---------- search ---------- */
+const INDEX = [];
+TOPICS.forEach(t => {
+  INDEX.push({ kind: 'Topic', t, part: null, title: `${t.n}. ${t.title}`, text: t.intro, boost: t.title + ' ' + t.kw.join(' ') });
+  t.parts.forEach((p, i) => {
+    const text = [].concat(p.p || [], p.p2 || [], p.list || [], p.steps || [], p.tip || [], p.fig ? p.fig.cap : [], p.fig2 ? p.fig2.cap : [], p.table ? p.table.rows.map(r => r.join(' ')) : [], p.code || []).map(plain).join(' ');
+    const bits = [].concat(p.p || [], p.p2 || [], p.list || [], p.tip || [], p.fig ? p.fig.cap : [], p.fig2 ? p.fig2.cap : []).map(plain);
+    INDEX.push({ kind: `Topic ${t.n} section`, t, part: i, title: p.h, text, boost: p.h, bits, steps: (p.steps || []).map(plain) });
+  });
+  t.quiz.forEach(q => INDEX.push({ kind: `Topic ${t.n} quiz`, t, part: 'quiz', title: q.q, text: q.why, boost: '' }));
+});
+FAQ.forEach((f, i) => INDEX.push({ kind: 'FAQ', faq: i, t: f.t ? byId(f.t) : null, title: f.q, text: f.a, boost: f.q }));
+const STOP = new Set('a an the is are was do does did i my me you your how what why when where which who to of in on for with and or it its this that can be as at by from into use using than then should would could tell about explain please make build create show give want need get there if so not no yes mean means'.split(' '));
+const toks = q => (q.toLowerCase().match(/[a-z0-9#/!?.+-]+/g) || []).map(w => w.replace(/[?.!]+$/, '')).filter(w => w && !STOP.has(w));
+function searchIndex(q, limit) {
+  const ws = toks(q); if (!ws.length) return [];
+  const run = all => INDEX.map(e => {
+    const title = e.title.toLowerCase(), boost = e.boost.toLowerCase(), text = e.text.toLowerCase();
+    let s = 0, hit = 0;
+    ws.forEach(w => { const a = boost.includes(w), b = title.includes(w), c = text.includes(w); if (a || b || c) hit++; s += (a ? 4 : 0) + (b ? 3 : 0) + (c ? 1 : 0); });
+    if (title.includes(q.toLowerCase().trim())) s += 6;
+    return { e, s: (all && hit < ws.length) ? 0 : s, cover: hit / ws.length };
+  }).filter(x => x.s > 0).sort((a, b) => b.s - a.s);
+  let r = run(true); if (!r.length) r = run(false);
+  return r.slice(0, limit || 30);
+}
+function hilite(text, q) {
+  const ws = toks(q).sort((a, b) => b.length - a.length); let h = esc(text);
+  if (!ws.length) return h;
+  const re = new RegExp('(' + ws.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+  return h.replace(re, '<mark>$1</mark>');
+}
+function snippet(text, q) {
+  const ws = toks(q), low = text.toLowerCase(); let at = -1;
+  ws.some(w => (at = low.indexOf(w)) >= 0);
+  const start = Math.max(0, at - 60), s = text.slice(start, start + 190);
+  return (start ? '… ' : '') + s + (start + 190 < text.length ? ' …' : '');
+}
+function searchPage(q) {
+  const r = searchIndex(q);
+  const kws = []; TOPICS.forEach(t => t.kw.forEach(k => { if (k.toLowerCase().includes(q.toLowerCase().trim())) kws.push([k, t]); }));
+  return `<header class="thead"><div class="eyebrow">Search</div><h1>${r.length} result${r.length === 1 ? '' : 's'} for &ldquo;${esc(q)}&rdquo;</h1></header>` +
+    (kws.length ? `<div class="chips">${kws.slice(0, 14).map(k => `<button type="button" class="chip" data-go="${k[1].id}">${esc(k[0])} &middot; Topic ${k[1].n}</button>`).join('')}</div>` : '') +
+    (r.length ? `<div class="results">${r.map(x => { const e = x.e; return `<button type="button" class="res" ${e.kind === 'FAQ' ? `data-faq="${e.faq}"` : `data-go="${e.t.id}" data-part="${e.part == null ? '' : e.part}"`}><span class="where">${esc(e.kind)}${e.kind === 'FAQ' && e.t ? ' &middot; Topic ' + e.t.n : ''}</span><b>${hilite(e.title, q)}</b><span>${hilite(snippet(e.text, q), q)}</span></button>`; }).join('')}</div>`
+      : `<p>Nothing matched. Try a function name such as PMT or VLOOKUP, or open the keyword index.</p>`);
+}
+function indexPage() {
+  const map = {};
+  TOPICS.forEach(t => t.kw.forEach(k => { (map[k] = map[k] || []).push(t); }));
+  const groups = {};
+  Object.keys(map).sort((a, b) => a.replace(/^[#.]+/, '').localeCompare(b.replace(/^[#.]+/, ''), 'en', { sensitivity: 'base' })).forEach(k => {
+    const ch = (k.replace(/^[^A-Za-z]+/, '')[0] || '#').toUpperCase(); (groups[ch] = groups[ch] || []).push(k);
+  });
+  return `<header class="thead"><div class="eyebrow">Keyword index</div><h1>${Object.keys(map).length} keywords, A to Z</h1><p class="lead">Each keyword opens the topic that teaches it.</p></header><div class="az">` +
+    Object.keys(groups).sort().map(ch => `<section><h3>${ch}</h3>${groups[ch].map(k => `<button type="button" data-go="${map[k][0].id}">${esc(k)} <small>${map[k].map(t => 'T' + t.n).join(' ')}</small></button>`).join('')}</section>`).join('') + '</div>';
+}
+
+/* ---------- home ---------- */
+function homePage() {
+  const total = TOPICS.reduce((n, t) => n + t.quiz.length, 0), got = TOPICS.reduce((n, t) => n + scoreOf(t), 0);
+  return `<header class="cover"><div class="eyebrow">Course companion &middot; ${TOPICS.length} topics &middot; ${total} check questions</div>
+    <h1>Advanced Excel, one worked example at a time</h1>
+    <p class="lead">Each topic explains the idea, shows it on a picture of the real worksheet, walks you through the clicks, then checks your understanding with explained answers. The numbers match the practice workbook, so you can follow along in Excel.</p>
+    <div class="fbar"><span class="nb">A1</span><span class="fxi">fx</span><span class="f">=COUNTIF(QuizAnswers, "correct")  &rarr;  ${got} of ${total} so far</span></div></header>
+  <div class="how"><div><b>Read or listen</b>Press Listen on any topic to have it read aloud while each part is highlighted.</div><div><b>Follow along</b>Open the matching sheet in the practice workbook and do the numbered steps.</div><div><b>Check yourself</b>Answer three questions per topic. Every option is explained.</div><div><b>Search or ask</b>Search keywords from the top bar, or ask a question in Ask &amp; FAQ.</div></div>
+  <div class="toc">${TOPICS.map(t => `<button type="button" data-go="${t.id}"><span class="n">${String(t.n).padStart(2, '0')} &middot; ${doneCount(t) ? scoreOf(t) + '/' + t.quiz.length + ' correct' : 'not started'}</span><b>${esc(t.title)}</b><small>${esc(t.kw.slice(0, 4).join(', '))}</small></button>`).join('')}</div>`;
+}
+
+/* ---------- ask & FAQ ---------- */
+let sample = null;
+const chat = [];
+function corpus() {
+  let c = '';
+  TOPICS.forEach(t => {
+    c += `\n\n### Topic ${t.n}: ${t.title} (workbook sheet "${t.sheet}")\n${plain(t.intro)}\nKeywords: ${t.kw.join(', ')}\n`;
+    t.parts.forEach(p => {
+      c += `\n# ${p.h}\n` + [].concat(p.p || [], p.p2 || []).map(plain).join('\n') + '\n';
+      if (p.table) c += p.table.head.join(' | ') + '\n' + p.table.rows.map(r => r.join(' | ')).join('\n') + '\n';
+      [p.fig, p.fig2].forEach(f => { if (f) { c += `Figure: ${plain(f.cap)}${f.fx && f.type === 'grid' ? ' Formula in ' + f.name + ': ' + f.fx : ''}\n`; if (f.type === 'grid') c += f.rows.map(r => r.map(v => v.replace(/^[!~*+^]+/, '')).join(' | ')).join('\n') + '\n'; if (f.fields) c += f.fields.map(x => x.join(': ')).join('; ') + '\n'; } });
+      if (p.steps) c += 'Steps:\n' + p.steps.map((s, i) => `${i + 1}. ${plain(s)}`).join('\n') + '\n';
+      if (p.code) c += 'VBA:\n' + p.code + '\n';
+      if (p.list) c += p.list.map(s => '- ' + plain(s)).join('\n') + '\n';
+      if (p.tip) c += 'Tip: ' + plain(p.tip) + '\n';
+    });
+    t.quiz.forEach(q => { c += `Q: ${q.q}\nA: ${q.o[q.a]}. ${q.why}\n`; });
+  });
+  c += '\n\n### Frequently asked questions\n' + FAQ.map(f => `Q: ${f.q}\nA: ${f.a}`).join('\n');
+  return c;
+}
+let CORPUS = null;
+function botHtml(text) {
+  return esc(text).replace(/`([^`]+)`/g, '<code>$1</code>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/Topic (\d{1,2})\b/g, (m, n) => +n >= 1 && +n <= TOPICS.length ? `<button type="button" class="linkbtn" data-go="t${n}">Topic ${n}</button>` : m)
+    .replace(/\n/g, '<br>');
+}
+function localAnswer(q) {
+  const ws = toks(q);
+  const r = searchIndex(q, 12).filter(x => x.cover >= 0.6 && x.e.kind !== 'Topic');
+  const secs = r.filter(x => x.e.bits).slice(0, 3).map(x => x.e);
+  const top = r[0];
+  if (!top) return { text: `The guide does not seem to cover that. Try a function name such as PMT or VLOOKUP, or browse the keyword index.`, links: [] };
+  const e = top.e; let text;
+  if (e.kind === 'FAQ') text = FAQ[e.faq].a;
+  else if (!e.bits) text = e.text;
+  else {
+    const rank = e.bits.map(b => ({ b, n: ws.filter(w => b.toLowerCase().includes(w)).length })).sort((a, b) => b.n - a.n);
+    text = (rank[0] && rank[0].n ? rank[0].b : (e.bits[0] || e.title));
+    if (e.steps.length && /^\s*how\b/i.test(q)) text += '\n' + e.steps.map((s, i) => `${i + 1}. ${s}`).join('\n');
+  }
+  if (e.t) text += `\nTaught in Topic ${e.t.n}.`;
+  return { text, links: secs };
+}
+function askPage() {
+  return `<header class="thead"><div class="eyebrow">Ask &amp; FAQ</div><h1>Ask a question about the course</h1>
+    <p class="lead" id="botmode">Answers come only from this guide's 15 topics and its FAQ.</p></header>
+  <div class="chat"><div class="log" id="log" aria-live="polite">${chat.length ? '' : `<div class="msg bot"><span class="src">Study assistant</span><div>Ask me anything covered in the guide, for example how a function works, which tool to use, or why an answer is what it is. I will point you to the topic it comes from.</div></div>`}</div>
+    <form class="askform" id="askform"><input id="q" type="text" placeholder="For example: why is my PMT result negative?" aria-label="Your question" autocomplete="off" maxlength="400"><button class="btn" type="submit" id="send">Ask</button></form></div>
+  <div class="chips" id="sugg">${[`Which Solver method should I use?`, `How do I build a two-variable data table?`, `What does #N/A mean?`, `How do I keep a macro when saving?`].map(s => `<button type="button" class="chip" data-ask="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+  <section class="part"><h2>Frequently asked questions</h2><div class="faq">${FAQ.map((f, i) => `<details id="faq${i}"><summary>${esc(f.q)}</summary><div><p id="faqa${i}">${esc(f.a)}</p><div class="meta" style="display:flex;gap:8px;flex-wrap:wrap">${f.t ? `<button type="button" class="btn ghost small" data-go="${f.t}">Open Topic ${byId(f.t).n}</button>` : ''}${synth ? `<button type="button" class="btn ghost small" data-speak="faqa${i}">Listen</button>` : ''}</div></div></details>`).join('')}</div></section>`;
+}
+function drawChat() {
+  const log = $('#log'); if (!log || !chat.length) return;
+  log.innerHTML = chat.map((m, i) => m.role === 'user' ? `<div class="msg me">${esc(m.text)}</div>` :
+    `<div class="msg bot"><span class="src">${m.src}</span><div id="bot${i}">${m.text ? botHtml(m.text) : 'Thinking&hellip;'}</div>${m.done ? `<div class="meta">${(m.links || []).map(e => `<button type="button" class="btn ghost small" data-go="${e.t.id}" data-part="${e.part == null ? '' : e.part}">Topic ${e.t.n}: ${esc(e.part === 'quiz' ? 'quiz' : e.title.replace(/^\d+\. /, ''))}</button>`).join('')}${synth ? `<button type="button" class="btn ghost small" data-speak="bot${i}">Listen</button>` : ''}</div>` : ''}</div>`).join('');
+  log.scrollTop = log.scrollHeight;
+}
+function botMode() {
+  const el = $('#botmode'); if (!el) return;
+  el.textContent = sample ? `Claude answers your question using only this guide's 15 topics and its FAQ, and names the topic each answer comes from.`
+    : `Answers are matched from this guide's 15 topics and its FAQ.`;
+}
+async function ask(q) {
+  q = q.trim(); if (!q) return;
+  const send = $('#send'); if (send) send.disabled = true;
+  chat.push({ role: 'user', text: q });
+  const m = { role: 'bot', text: '', src: sample ? 'Claude, from the guide' : 'Matched from the guide', done: false };
+  chat.push(m); drawChat();
+  const fallback = note => { const a = localAnswer(q); m.text = (note ? note + ' ' : '') + a.text; m.links = a.links; m.src = 'Matched from the guide'; };
+  if (sample) {
+    try {
+      CORPUS = CORPUS || corpus();
+      const hist = chat.slice(0, -2).slice(-6).map(x => (x.role === 'user' ? 'Student: ' : 'Assistant: ') + x.text).join('\n');
+      const prompt = `You are the study assistant inside "Advanced Excel Walkthrough", a course guide for a student learning advanced Excel.\n` +
+        `Answer the student's question using ONLY the guide content between the <guide> tags. Rules:\n` +
+        `- If the guide does not cover the question, say so plainly and name the closest topic. Do not add Excel facts that are not in the guide.\n` +
+        `- Be concise: under 140 words. Plain sentences, or short numbered steps when describing clicks.\n` +
+        `- Write formulas exactly, wrapped in backticks. Use the guide's own example numbers when they help.\n` +
+        `- End by naming where it is taught, written exactly like "Topic 6".\n` +
+        `- No headings, no tables, no preamble.\n\n<guide>${CORPUS}\n</guide>\n\n` +
+        (hist ? `Conversation so far:\n${hist}\n\n` : '') + `Student's question: ${q}`;
+      const me = chat.length - 1;
+      const res = await sample(prompt, { cache: false, onText: ({ text }) => { m.text = text; const el = $('#bot' + me); if (el && text) el.innerHTML = botHtml(text); } });
+      m.text = res.text || m.text;
+      if (!m.text) fallback();
+      else m.links = searchIndex(q, 8).filter(x => x.e.kind !== 'FAQ' && x.e.t && new RegExp('Topic ' + x.e.t.n + '\\b').test(m.text)).slice(0, 2).map(x => x.e);
+    } catch (e) {
+      if (e && e.code === 'not_granted') { sample = null; botMode(); fallback(); }
+      else if (e && e.code === 'rate_limited') fallback('Claude is busy right now, so here is the closest match from the guide.');
+      else fallback('Claude could not answer just now, so here is the closest match from the guide.');
+    }
+  } else fallback();
+  m.done = true; drawChat();
+  const s2 = $('#send'); if (s2) s2.disabled = false;
+}
+
+/* ---------- navigation ---------- */
+let view = 'home';
+function rail() {
+  $('#rail').innerHTML = `<h2>Course topics</h2><ol>${TOPICS.map(t => { const d = doneCount(t), s = scoreOf(t); return `<li><button type="button" data-go="${t.id}" ${view === t.id ? 'aria-current="page"' : ''}><span class="n">${String(t.n).padStart(2, '0')}</span><span>${esc(t.title)}</span><span class="sc${d === t.quiz.length && s === d ? ' done' : ''}">${d ? s + '/' + t.quiz.length : ''}</span></button></li>`; }).join('')}</ol>`;
+  $('#indexBtn').toggleAttribute('aria-current', view === 'index'); if (view === 'index') $('#indexBtn').setAttribute('aria-current', 'page');
+  $('#askBtn').toggleAttribute('aria-current', view === 'ask'); if (view === 'ask') $('#askBtn').setAttribute('aria-current', 'page');
+}
+function show(v, opts) {
+  opts = opts || {};
+  stopAudio();
+  view = v;
+  const t = byId(v), page = $('#page');
+  if (t) page.innerHTML = topicPage(t);
+  else if (v === 'index') page.innerHTML = indexPage();
+  else if (v === 'ask') page.innerHTML = askPage();
+  else if (v === 'search') page.innerHTML = searchPage(opts.q || '');
+  else { view = 'home'; page.innerHTML = homePage(); }
+  rail(); loadVoices();
+  if (view === 'ask') { botMode(); drawChat(); }
+  if (view !== 'search') { $('#search').value = ''; try { if (location.hash.slice(1) !== view) history.replaceState(null, '', '#' + view); } catch (e) { /* ignore */ } }
+  $('#rail').classList.remove('open'); $('#menuBtn').setAttribute('aria-expanded', 'false');
+  const target = opts.part === 'quiz' ? $('#quiz') : (opts.part !== undefined && opts.part !== '' && opts.part != null ? $('#p' + opts.part) : null);
+  if (target) { try { target.scrollIntoView({ block: 'start' }); } catch (e) { /* ignore */ } }
+  else if (!opts.keep) window.scrollTo(0, 0);
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'homeBtn') return show('home');
+  if (b.id === 'indexBtn') return show('index');
+  if (b.id === 'askBtn') return show('ask');
+  if (b.id === 'menuBtn') { const o = $('#rail').classList.toggle('open'); b.setAttribute('aria-expanded', o); return; }
+  if (b.id === 'play') return togglePlay();
+  if (b.id === 'stop') return stopAudio();
+  if (b.id === 'retry') { const y = window.scrollY; store.quiz[view] = []; save(); show(view, { keep: true }); window.scrollTo(0, y); $('#quiz').scrollIntoView({ block: 'start' }); return; }
+  if (b.dataset.speak) { const el = document.getElementById(b.dataset.speak); if (el) { if (audio.playing && audio.label === b.dataset.speak) stopAudio(); else speakEls([el], b.dataset.speak); } return; }
+  if (b.dataset.ask) return ask(b.dataset.ask);
+  if (b.dataset.kw) { $('#search').value = b.dataset.kw; return show('search', { q: b.dataset.kw }); }
+  if (b.dataset.faq != null) { show('ask'); const d = $('#faq' + b.dataset.faq); if (d) { d.open = true; d.scrollIntoView({ block: 'center' }); } return; }
+  if (b.dataset.go) return show(b.dataset.go, { part: b.dataset.part });
+  if (b.classList.contains('opt')) {
+    const t = byId(view); if (!t) return;
+    const y = window.scrollY;
+    answers(t)[+b.dataset.q] = +b.dataset.o; save();
+    show(view, { keep: true }); window.scrollTo(0, y);
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'rate') { store.rate = +e.target.value; save(); }
+  if (e.target.id === 'voice') { store.voice = e.target.value; save(); }
+});
+document.addEventListener('submit', e => {
+  e.preventDefault();
+  if (e.target.id === 'askform') { const i = $('#q'); const v = i.value; i.value = ''; ask(v); }
+});
+let st;
+$('#search').addEventListener('input', e => {
+  clearTimeout(st); const q = e.target.value;
+  st = setTimeout(() => { if (q.trim().length >= 2) show('search', { q, keep: true }); else if (view === 'search') show('home'); }, 180);
+});
+window.addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h && h !== view && (byId(h) || ['home', 'index', 'ask'].includes(h))) show(h); });
+window.addEventListener('pagehide', () => { if (synth) synth.cancel(); });
+
+const start = location.hash.slice(1);
+show(byId(start) || ['index', 'ask'].includes(start) ? start : 'home');
+if (window.claude && typeof window.claude.use === 'function') {
+  window.claude.use('sample').then(s => { sample = s || null; botMode(); }).catch(() => {});
+}
+})();
+
+</script>
+</body></html>
